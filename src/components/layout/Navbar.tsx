@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Graduation, BookOpen, LayoutDashboard, User, LogOut, Menu
+  GraduationCap, BookOpen, LayoutDashboard, User, LogOut, Menu
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/context/AuthContext';
@@ -33,7 +32,7 @@ const Navbar = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link to="/" className="flex-shrink-0 flex items-center">
-              <Graduation className="h-8 w-8 text-purple-600" />
+              <GraduationCap className="h-8 w-8 text-purple-600" />
               <span className="ml-2 text-xl font-bold text-purple-600">LearnFinity</span>
             </Link>
             
@@ -108,7 +107,7 @@ const Navbar = () => {
               <SheetContent side="right">
                 <div className="flex flex-col gap-6 py-4">
                   <Link to="/" className="flex items-center">
-                    <Graduation className="h-6 w-6 text-purple-600" />
+                    <GraduationCap className="h-6 w-6 text-purple-600" />
                     <span className="ml-2 text-lg font-bold text-purple-600">LearnFinity</span>
                   </Link>
                   

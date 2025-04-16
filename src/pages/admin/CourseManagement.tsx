@@ -377,7 +377,7 @@ const CourseManagement = () => {
                             <TableCell>${course.price.toFixed(2)}</TableCell>
                             <TableCell>
                               {course.published ? (
-                                <Badge variant="success" className="bg-green-100 text-green-800">Published</Badge>
+                                <Badge variant="default" className="bg-green-100 text-green-800">Published</Badge>
                               ) : (
                                 <Badge variant="outline" className="bg-gray-100 text-gray-800">Draft</Badge>
                               )}
