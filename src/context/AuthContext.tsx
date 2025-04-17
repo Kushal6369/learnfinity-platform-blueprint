@@ -5,6 +5,15 @@ import { toast } from 'sonner';
 // Theme type
 type Theme = 'light' | 'dark';
 
+// Course type for enrolled courses
+type EnrolledCourse = {
+  courseId: string;
+  enrolledDate: Date;
+  progress: number;
+  lastAccessedDate: Date;
+  completedModules: string[];
+};
+
 // User type
 type User = {
   id: string;
@@ -13,6 +22,7 @@ type User = {
   role: 'user' | 'admin';
   avatar?: string;
   theme: Theme;
+  enrolledCourses: EnrolledCourse[];
 };
 
 // Auth context type
@@ -22,6 +32,7 @@ type AuthContextType = {
   isAdmin: boolean;
   theme: Theme;
   login: (email: string, password: string, employeeId?: string) => Promise<boolean>;
+  loginWithGoogle: () => Promise<boolean>;
   signup: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   requestPasswordReset: (email: string) => Promise<boolean>;
@@ -29,6 +40,8 @@ type AuthContextType = {
   resetPassword: (email: string, otp: string, newPassword: string) => Promise<boolean>;
   toggleTheme: () => void;
   updateProfile: (data: Partial<User>) => Promise<boolean>;
+  enrollInCourse: (courseId: string) => Promise<boolean>;
+  updateCourseProgress: (courseId: string, progress: number, completedModules?: string[]) => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,7 +64,8 @@ const mockUsers = [
     role: 'user' as const,
     avatar: 'https://i.pravatar.cc/150?img=1',
     theme: 'light' as Theme,
-    employeeId: ''
+    employeeId: '',
+    enrolledCourses: [] as EnrolledCourse[]
   },
   {
     id: '2',
@@ -61,12 +75,32 @@ const mockUsers = [
     role: 'admin' as const,
     avatar: 'https://i.pravatar.cc/150?img=2',
     theme: 'dark' as Theme,
-    employeeId: 'ADMIN123'
+    employeeId: 'ADMIN123',
+    enrolledCourses: [] as EnrolledCourse[]
   }
 ];
 
 // Mock OTP storage
 const mockOtps: Record<string, { otp: string, timestamp: number }> = {};
+
+// Mock course data
+const mockCourses = [
+  {
+    id: '1',
+    title: 'Introduction to Web Development',
+    modules: ['html-basics', 'css-fundamentals', 'js-intro', 'responsive-design', 'project']
+  },
+  {
+    id: '2',
+    title: 'Advanced JavaScript Concepts',
+    modules: ['closures', 'promises', 'async-await', 'es6-features', 'design-patterns']
+  },
+  {
+    id: '3',
+    title: 'UX Design Fundamentals',
+    modules: ['user-research', 'wireframing', 'prototyping', 'usability-testing', 'design-systems']
+  }
+];
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -157,6 +191,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Mock Google login - in a real app this would integrate with Google OAuth
+      const googleUser = {
+        id: 'google-user-123',
+        name: 'Google User',
+        email: 'googleuser@example.com',
+        role: 'user' as const,
+        avatar: 'https://i.pravatar.cc/150?img=3',
+        theme: theme as Theme,
+        enrolledCourses: [] as EnrolledCourse[]
+      };
+      
+      setUser(googleUser);
+      localStorage.setItem('user', JSON.stringify(googleUser));
+      toast.success('Logged in with Google successfully');
+      return true;
+    } catch (error) {
+      console.error('Google login error:', error);
+      toast.error('An error occurred during Google login');
+      return false;
+    }
+  };
+
   const signup = async (name: string, email: string, password: string) => {
     try {
       // Simulate API call delay
@@ -176,7 +237,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         name,
         email,
         role: 'user' as const,
-        theme: theme as Theme
+        theme: theme as Theme,
+        enrolledCourses: [] as EnrolledCourse[]
       };
       
       setUser(newUser);
@@ -322,6 +384,86 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // Enroll in a course
+  const enrollInCourse = async (courseId: string) => {
+    try {
+      if (!user) {
+        toast.error('Please log in to enroll in courses');
+        return false;
+      }
+      
+      // Check if the user is already enrolled
+      const alreadyEnrolled = user.enrolledCourses.some(course => course.courseId === courseId);
+      if (alreadyEnrolled) {
+        toast.info('You are already enrolled in this course');
+        return true;
+      }
+      
+      // Get the course (in a real app, this would come from the database)
+      const course = mockCourses.find(c => c.id === courseId);
+      if (!course) {
+        toast.error('Course not found');
+        return false;
+      }
+      
+      // Create new enrolled course
+      const newEnrolledCourse: EnrolledCourse = {
+        courseId,
+        enrolledDate: new Date(),
+        progress: 0,
+        lastAccessedDate: new Date(),
+        completedModules: []
+      };
+      
+      // Update user's enrolled courses
+      const updatedEnrolledCourses = [...user.enrolledCourses, newEnrolledCourse];
+      const updatedUser = { ...user, enrolledCourses: updatedEnrolledCourses };
+      
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      toast.success(`Successfully enrolled in ${course.title}`);
+      return true;
+    } catch (error) {
+      console.error('Enrollment error:', error);
+      toast.error('Failed to enroll in the course');
+      return false;
+    }
+  };
+
+  // Update course progress
+  const updateCourseProgress = async (courseId: string, progress: number, completedModules?: string[]) => {
+    try {
+      if (!user) return false;
+      
+      // Find the enrolled course
+      const enrolledCourseIndex = user.enrolledCourses.findIndex(course => course.courseId === courseId);
+      if (enrolledCourseIndex === -1) {
+        toast.error('You are not enrolled in this course');
+        return false;
+      }
+      
+      // Update the course progress
+      const updatedEnrolledCourses = [...user.enrolledCourses];
+      updatedEnrolledCourses[enrolledCourseIndex] = {
+        ...updatedEnrolledCourses[enrolledCourseIndex],
+        progress,
+        lastAccessedDate: new Date(),
+        completedModules: completedModules || updatedEnrolledCourses[enrolledCourseIndex].completedModules
+      };
+      
+      const updatedUser = { ...user, enrolledCourses: updatedEnrolledCourses };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      return true;
+    } catch (error) {
+      console.error('Progress update error:', error);
+      toast.error('Failed to update course progress');
+      return false;
+    }
+  };
+
   const isAuthenticated = user !== null;
   const isAdmin = user?.role === 'admin';
 
@@ -332,13 +474,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isAdmin, 
       theme,
       login, 
+      loginWithGoogle,
       signup, 
       logout,
       requestPasswordReset,
       verifyOTP,
       resetPassword,
       toggleTheme,
-      updateProfile
+      updateProfile,
+      enrollInCourse,
+      updateCourseProgress
     }}>
       {children}
     </AuthContext.Provider>

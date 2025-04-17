@@ -11,15 +11,24 @@ type ProgressCardProps = {
   course: CourseType;
   chaptersCompleted?: number;
   totalChapters?: number;
+  onClick?: () => void;
 };
 
 const ProgressCard = ({ 
   course, 
   chaptersCompleted = 0, 
-  totalChapters = 0 
+  totalChapters = 0,
+  onClick
 }: ProgressCardProps) => {
   const { id, title, thumbnailUrl, duration, progress = 0 } = course;
   const progressText = `${chaptersCompleted}/${totalChapters} chapters`;
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (onClick) {
+      e.preventDefault();
+      onClick();
+    }
+  };
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow">
@@ -66,12 +75,19 @@ const ProgressCard = ({
       </CardContent>
       
       <CardFooter className="p-4 pt-0 flex justify-end">
-        <Button variant="ghost" asChild>
-          <Link to={`/course/${id}`} className="flex items-center text-purple-600">
+        {onClick ? (
+          <Button variant="ghost" className="text-purple-600" onClick={handleClick}>
             Continue Learning
             <ArrowRight className="ml-1 h-4 w-4" />
-          </Link>
-        </Button>
+          </Button>
+        ) : (
+          <Button variant="ghost" asChild>
+            <Link to={`/course/${id}`} className="flex items-center text-purple-600">
+              Continue Learning
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+        )}
       </CardFooter>
     </Card>
   );

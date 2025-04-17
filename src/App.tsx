@@ -12,10 +12,12 @@ import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import Courses from "./pages/Courses";
+import MyCourses from "./pages/MyCourses";
 import CourseDetail from "./pages/CourseDetail";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import CourseManagement from "./pages/admin/CourseManagement";
 import NotFound from "./pages/NotFound";
+import ChatbotWidget from "./components/chat/ChatbotWidget";
 
 const queryClient = new QueryClient();
 
@@ -34,11 +36,13 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/courses" element={<Courses />} />
+            <Route path="/my-courses" element={<MyCourses />} />
             <Route path="/course/:id" element={<CourseDetail />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/course-management" element={<CourseManagement />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <ChatbotWidget />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>

@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 export type CourseType = {
   id: string;
@@ -42,6 +44,8 @@ const CourseCard = ({ course, className }: CourseCardProps) => {
     enrolled
   } = course;
 
+  const { isAuthenticated, enrollInCourse } = useAuth();
+
   const renderStars = (rating: number) => {
     return Array(5)
       .fill(0)
@@ -54,6 +58,21 @@ const CourseCard = ({ course, className }: CourseCardProps) => {
           )}
         />
       ));
+  };
+
+  const handleEnroll = async (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (!isAuthenticated) {
+      toast.error('Please log in to enroll in courses');
+      return;
+    }
+
+    const success = await enrollInCourse(id);
+    if (success) {
+      // Refresh the page to show enrollment status
+      window.location.href = `/course/${id}`;
+    }
   };
 
   return (
@@ -116,8 +135,11 @@ const CourseCard = ({ course, className }: CourseCardProps) => {
             <div className="text-lg font-semibold">
               {price > 0 ? `$${price.toFixed(2)}` : 'Free'}
             </div>
-            <Button className="bg-purple-600 hover:bg-purple-700" asChild>
-              <Link to={`/course/${id}`}>Enroll Now</Link>
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700"
+              onClick={handleEnroll}
+            >
+              Enroll Now
             </Button>
           </div>
         )}
