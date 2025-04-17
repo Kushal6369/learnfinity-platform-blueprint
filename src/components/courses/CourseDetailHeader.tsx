@@ -84,7 +84,7 @@ const CourseDetailHeader = ({ course }: CourseDetailHeaderProps) => {
           <span className="text-sm font-medium">Progress</span>
           <span className="text-sm">{progress}% Complete</span>
         </div>
-        <Progress value={progress} className="h-2 bg-gray-700" indicatorClassName="bg-blue-500" />
+        <Progress value={progress} className="h-2 bg-gray-700" />
       </div>
     </div>
   );
