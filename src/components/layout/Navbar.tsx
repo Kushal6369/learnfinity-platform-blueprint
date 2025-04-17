@@ -1,14 +1,18 @@
+
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  GraduationCap, BookOpen, LayoutDashboard, User, LogOut, Menu
+  GraduationCap, BookOpen, LayoutDashboard, User, LogOut, Menu,
+  Moon, Sun, Settings
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useAuth } from '@/context/AuthContext';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -18,7 +22,7 @@ import {
 } from "@/components/ui/sheet";
 
 const Navbar = () => {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout, theme, toggleTheme } = useAuth();
   const navigate = useNavigate();
   
   const handleLogout = () => {
@@ -26,8 +30,13 @@ const Navbar = () => {
     navigate('/');
   };
 
+  // Get first letter of name for avatar fallback
+  const getInitials = (name: string) => {
+    return name.charAt(0).toUpperCase();
+  };
+
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-30">
+    <nav className={`border-b border-border sticky top-0 z-30 ${theme === 'dark' ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-800'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -38,18 +47,18 @@ const Navbar = () => {
             
             {/* Desktop navigation */}
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link to="/courses" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-900 hover:border-purple-500">
+              <Link to="/courses" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium hover:text-purple-600 hover:border-purple-500">
                 <BookOpen className="mr-2 h-5 w-5" />
                 Courses
               </Link>
               {isAuthenticated && (
-                <Link to="/dashboard" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-900 hover:border-purple-500">
+                <Link to="/dashboard" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium hover:text-purple-600 hover:border-purple-500">
                   <LayoutDashboard className="mr-2 h-5 w-5" />
                   Dashboard
                 </Link>
               )}
               {isAdmin && (
-                <Link to="/admin/dashboard" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-gray-500 hover:text-gray-900 hover:border-purple-500">
+                <Link to="/admin/dashboard" className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium hover:text-purple-600 hover:border-purple-500">
                   Admin
                 </Link>
               )}
@@ -57,20 +66,36 @@ const Navbar = () => {
           </div>
           
           {/* Desktop right side buttons */}
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
+          <div className="hidden sm:ml-6 sm:flex sm:items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleTheme} 
+              className="rounded-full"
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </Button>
+            
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative rounded-full p-1 text-gray-700 hover:text-gray-900">
+                  <Button variant="ghost" className="relative rounded-full p-1">
                     <span className="sr-only">Open user menu</span>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-purple-100 overflow-hidden">
+                      <Avatar className="h-8 w-8 border border-purple-200">
                         {user?.avatar ? (
-                          <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
+                          <AvatarImage src={user.avatar} alt={user.name} />
                         ) : (
-                          <User className="h-5 w-5 m-1.5 text-purple-600" />
+                          <AvatarFallback className="bg-purple-100 text-purple-600">
+                            {getInitials(user?.name || 'U')}
+                          </AvatarFallback>
                         )}
-                      </div>
+                      </Avatar>
                       <span className="text-sm font-medium">{user?.name}</span>
                     </div>
                   </Button>
@@ -82,6 +107,13 @@ const Navbar = () => {
                       Profile
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="w-full flex items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
                     <LogOut className="mr-2 h-4 w-4" />
                     Logout
@@ -97,7 +129,20 @@ const Navbar = () => {
           </div>
           
           {/* Mobile menu button */}
-          <div className="sm:hidden flex items-center">
+          <div className="sm:hidden flex items-center space-x-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleTheme} 
+              className="rounded-full"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5" />
+              ) : (
+                <Moon className="h-5 w-5" />
+              )}
+            </Button>
+            
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon">
@@ -111,26 +156,44 @@ const Navbar = () => {
                     <span className="ml-2 text-lg font-bold text-purple-600">LearnFinity</span>
                   </Link>
                   
+                  {isAuthenticated && (
+                    <div className="flex items-center gap-3 py-2">
+                      <Avatar className="h-10 w-10">
+                        {user?.avatar ? (
+                          <AvatarImage src={user.avatar} alt={user.name} />
+                        ) : (
+                          <AvatarFallback className="bg-purple-100 text-purple-600">
+                            {getInitials(user?.name || 'U')}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{user?.name}</p>
+                        <p className="text-sm opacity-75">{user?.email}</p>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="flex flex-col gap-4">
-                    <Link to="/courses" className="flex items-center px-2 py-2 text-base font-medium text-gray-800 hover:text-purple-600">
+                    <Link to="/courses" className="flex items-center px-2 py-2 text-base font-medium hover:text-purple-600">
                       <BookOpen className="mr-3 h-5 w-5" />
                       Courses
                     </Link>
                     
                     {isAuthenticated && (
                       <>
-                        <Link to="/dashboard" className="flex items-center px-2 py-2 text-base font-medium text-gray-800 hover:text-purple-600">
+                        <Link to="/dashboard" className="flex items-center px-2 py-2 text-base font-medium hover:text-purple-600">
                           <LayoutDashboard className="mr-3 h-5 w-5" />
                           Dashboard
                         </Link>
                         
-                        <Link to="/profile" className="flex items-center px-2 py-2 text-base font-medium text-gray-800 hover:text-purple-600">
+                        <Link to="/profile" className="flex items-center px-2 py-2 text-base font-medium hover:text-purple-600">
                           <User className="mr-3 h-5 w-5" />
                           Profile
                         </Link>
                         
                         {isAdmin && (
-                          <Link to="/admin/dashboard" className="flex items-center px-2 py-2 text-base font-medium text-gray-800 hover:text-purple-600">
+                          <Link to="/admin/dashboard" className="flex items-center px-2 py-2 text-base font-medium hover:text-purple-600">
                             Admin Panel
                           </Link>
                         )}

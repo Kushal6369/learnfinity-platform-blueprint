@@ -1,17 +1,17 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { Mail, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LoaderCircle, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from "sonner";
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -29,123 +29,60 @@ const LoginForm = () => {
     }
   };
 
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-
   return (
-    <div className="space-y-6 w-full max-w-md animate-fade-in">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-white">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="password" className="text-white">Password</Label>
-            <Link to="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300">
-              Forgot password?
-            </Link>
-          </div>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 pr-10"
-            />
-            <button
-              type="button"
-              onClick={toggleShowPassword}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
-            >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </button>
-          </div>
-        </div>
-        
-        <Button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 mt-4"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-              Signing in...
-            </>
-          ) : (
-            'Sign in as User'
-          )}
-        </Button>
-      </form>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="email" className="flex items-center gap-2">
+          <Mail className="h-4 w-4" />
+          Email Address
+        </Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder="name@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+        />
+      </div>
       
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-700"></div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password" className="flex items-center gap-2">
+            <Lock className="h-4 w-4" />
+            Password
+          </Label>
+          <Link to="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300">
+            Forgot password?
+          </Link>
         </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-gray-900 text-gray-400">OR CONTINUE WITH</span>
-        </div>
+        <Input
+          id="password"
+          type="password"
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+        />
       </div>
       
       <Button 
-        variant="outline" 
-        className="w-full border-gray-700 text-white hover:bg-gray-800"
-        onClick={() => {
-          // In a real app, this would integrate with Google OAuth
-          setEmail('user@example.com');
-          setPassword('password');
-        }}
+        type="submit" 
+        className="w-full bg-purple-600 hover:bg-purple-700"
+        disabled={isLoading}
       >
-        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google" className="h-5 w-5 mr-2" />
-        Sign in with Google
+        {isLoading ? 'Signing in...' : 'Sign In'}
       </Button>
       
-      <div className="text-center text-sm text-gray-400">
-        <p>
-          Don't have an account?{' '}
-          <Link to="/signup" className="text-blue-400 hover:text-blue-300 font-medium">
-            Sign up
-          </Link>
-        </p>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <Button 
-          variant="outline" 
-          className="border-gray-700 text-white hover:bg-gray-800"
-          onClick={() => {
-            setEmail('user@example.com');
-            setPassword('password');
-          }}
-        >
-          User Demo
-        </Button>
-        <Button 
-          variant="outline"
-          className="border-gray-700 text-white hover:bg-gray-800" 
-          onClick={() => {
-            setEmail('admin@example.com');
-            setPassword('password');
-          }}
-        >
-          Admin Demo
-        </Button>
-      </div>
-    </div>
+      <p className="text-center text-sm text-gray-400">
+        Don't have an account?{' '}
+        <Link to="/signup" className="text-blue-400 hover:text-blue-300">
+          Sign up
+        </Link>
+      </p>
+    </form>
   );
 };
 
