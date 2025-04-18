@@ -1,0 +1,24 @@
+
+export type Theme = 'light' | 'dark';
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'user' | 'admin';
+  avatar?: string;
+  theme: Theme;
+  employeeId?: string;
+};
+
+export type AuthContextType = {
+  user: User | null;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  theme: Theme;
+  login: (email: string, password: string, employeeId?: string) => Promise<boolean>;
+  loginWithGoogle: () => Promise<boolean>;
+  signup: (name: string, email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  toggleTheme: () => Promise<void>;
+};

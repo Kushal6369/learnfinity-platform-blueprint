@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, ChevronRight, Users, Star } from 'lucide-react';
@@ -44,7 +43,7 @@ const CourseCard = ({ course, className }: CourseCardProps) => {
     enrolled
   } = course;
 
-  const { isAuthenticated, enrollInCourse } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const renderStars = (rating: number) => {
     return Array(5)
@@ -68,11 +67,8 @@ const CourseCard = ({ course, className }: CourseCardProps) => {
       return;
     }
 
-    const success = await enrollInCourse(id);
-    if (success) {
-      // Refresh the page to show enrollment status
-      window.location.href = `/course/${id}`;
-    }
+    // For now, just redirect to the course page
+    window.location.href = `/course/${id}`;
   };
 
   return (
