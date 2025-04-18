@@ -16,7 +16,17 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { user, theme, setTheme } = useAuthState();
-  const { login, loginWithGoogle, signup, logout, toggleTheme } = useAuthMethods(user, theme, setTheme);
+  const { 
+    login, 
+    loginWithGoogle, 
+    signup, 
+    logout, 
+    toggleTheme,
+    requestPasswordReset,
+    verifyOTP,
+    resetPassword,
+    updateProfile
+  } = useAuthMethods(user, theme, setTheme);
 
   const isAuthenticated = user !== null;
   const isAdmin = user?.role === 'admin';
@@ -31,7 +41,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       loginWithGoogle,
       signup, 
       logout,
-      toggleTheme
+      toggleTheme,
+      requestPasswordReset,
+      verifyOTP,
+      resetPassword,
+      updateProfile
     }}>
       {children}
     </AuthContext.Provider>
