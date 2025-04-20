@@ -48,7 +48,7 @@ export const getPublishedCourses = async (): Promise<Course[]> => {
     
     return (data || []).map(course => ({
       ...course,
-      rating: course.rating || 0
+      rating: (course as any).rating ?? 0
     })) as Course[];
   } catch (err) {
     console.error('Error in getPublishedCourses:', err);
@@ -64,7 +64,7 @@ export const getInstructorCourses = async (instructorId: string): Promise<Course
       .from('courses')
       .select('*')
       .eq('instructor_id', instructorId);
-    
+
     if (error) {
       console.error('Error fetching instructor courses:', error);
       toast.error('Failed to load your courses');
@@ -73,7 +73,7 @@ export const getInstructorCourses = async (instructorId: string): Promise<Course
     
     return (data || []).map(course => ({
       ...course,
-      rating: course.rating || 0
+      rating: (course as any).rating ?? 0
     })) as Course[];
   } catch (err) {
     console.error('Error in getInstructorCourses:', err);
@@ -98,7 +98,7 @@ export const getUserEnrolledCourses = async (userId: string): Promise<Course[]> 
     
     return (data || []).map(item => ({
       ...item.courses,
-      rating: item.courses.rating || 0
+      rating: (item.courses as any)?.rating ?? 0
     })) as Course[];
   } catch (err) {
     console.error('Error in getUserEnrolledCourses:', err);
@@ -124,7 +124,7 @@ export const getCourseById = async (courseId: string): Promise<Course | null> =>
     
     return {
       ...data,
-      rating: data.rating || 0
+      rating: (data as any)?.rating ?? 0
     } as Course;
   } catch (err) {
     console.error('Error in getCourseById:', err);
@@ -157,7 +157,7 @@ export const createCourse = async (course: CourseCreateInput, instructorId: stri
     toast.success('Course created successfully');
     return {
       ...data,
-      rating: data.rating || 0
+      rating: (data as any)?.rating ?? 0
     } as Course;
   } catch (err) {
     console.error('Error in createCourse:', err);
@@ -188,7 +188,7 @@ export const updateCourse = async (courseId: string, updates: CourseUpdateInput)
     toast.success('Course updated successfully');
     return {
       ...data,
-      rating: data.rating || 0
+      rating: (data as any)?.rating ?? 0
     } as Course;
   } catch (err) {
     console.error('Error in updateCourse:', err);
