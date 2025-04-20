@@ -158,18 +158,22 @@ export const deleteReview = async (reviewId: string): Promise<boolean> => {
 // Get average rating for a course
 export const getCourseAverageRating = async (courseId: string): Promise<number> => {
   try {
+    // Get the average directly from reviews table
     const { data, error } = await supabase
-      .from('courses')
+      .from('reviews')
       .select('rating')
-      .eq('id', courseId)
-      .single();
+      .eq('course_id', courseId);
     
     if (error) {
-      console.error('Error fetching course rating:', error);
+      console.error('Error fetching course ratings:', error);
       return 0;
     }
     
-    return data?.rating || 0;
+    if (!data || data.length === 0) return 0;
+    
+    // Calculate average rating manually
+    const sum = data.reduce((total, review) => total + review.rating, 0);
+    return Number((sum / data.length).toFixed(1));
   } catch (err) {
     console.error('Error in getCourseAverageRating:', err);
     return 0;
