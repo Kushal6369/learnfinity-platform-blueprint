@@ -18,30 +18,62 @@ export interface Review {
 // Get all reviews for a course
 export const getCourseReviews = async (courseId: string): Promise<Review[]> => {
   try {
-    const { data, error } = await supabase
+    // First fetch the reviews
+    const { data: reviewsData, error: reviewsError } = await supabase
       .from('reviews')
-      .select(`
-        *,
-        profiles:user_id (
-          name,
-          avatar_url
-        )
-      `)
+      .select('*')
       .eq('course_id', courseId)
       .order('created_at', { ascending: false });
     
-    if (error) {
-      console.error('Error fetching course reviews:', error);
+    if (reviewsError) {
+      console.error('Error fetching course reviews:', reviewsError);
       toast.error('Failed to load reviews');
       return [];
     }
     
-    // Transform the response to match the Review interface
-    return (data || []).map(review => ({
-      ...review,
-      user_name: review.profiles?.name || 'Anonymous',
-      user_avatar: review.profiles?.avatar_url || null
-    }));
+    if (!reviewsData || reviewsData.length === 0) {
+      return [];
+    }
+    
+    // Then fetch the profiles for those users
+    const reviews = [...reviewsData];
+    const userIds = reviews.map(review => review.user_id);
+    
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, name, avatar_url')
+      .in('id', userIds);
+      
+    if (profilesError) {
+      console.error('Error fetching user profiles:', profilesError);
+      // Still return reviews but without profile info
+      return reviews.map(review => ({
+        ...review,
+        user_name: 'Anonymous',
+        user_avatar: null
+      }));
+    }
+    
+    // Map profiles to reviews
+    const profilesMap = new Map();
+    if (profilesData) {
+      profilesData.forEach(profile => {
+        profilesMap.set(profile.id, {
+          name: profile.name || 'Anonymous',
+          avatar_url: profile.avatar_url
+        });
+      });
+    }
+    
+    // Combine reviews with profile data
+    return reviews.map(review => {
+      const profile = profilesMap.get(review.user_id);
+      return {
+        ...review,
+        user_name: profile ? profile.name : 'Anonymous',
+        user_avatar: profile ? profile.avatar_url : null
+      };
+    });
   } catch (err) {
     console.error('Error in getCourseReviews:', err);
     toast.error('An unexpected error occurred');

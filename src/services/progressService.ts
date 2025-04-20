@@ -38,7 +38,7 @@ export const getUserLessonProgress = async (userId: string, lessonId: string): P
 // Get all progress for a user in a course
 export const getUserCourseProgress = async (userId: string, courseId: string): Promise<LessonProgress[]> => {
   try {
-    // Use a direct query instead of RPC to avoid type issues
+    // Join lesson_progress with lessons and modules to filter by course_id
     const { data, error } = await supabase
       .from('lesson_progress')
       .select(`
@@ -59,11 +59,9 @@ export const getUserCourseProgress = async (userId: string, courseId: string): P
     }
     
     // Filter to only include progress for lessons in the specified course
-    const courseProgress = data?.filter(progress => 
+    return (data || []).filter(progress => 
       progress.lessons?.modules?.course_id === courseId
-    ) || [];
-    
-    return courseProgress;
+    );
   } catch (err) {
     console.error('Error in getUserCourseProgress:', err);
     return [];
@@ -148,32 +146,38 @@ export const markLessonIncomplete = async (userId: string, lessonId: string): Pr
 // Calculate course completion percentage
 export const calculateCourseCompletion = async (userId: string, courseId: string): Promise<number> => {
   try {
+    // First, get all modules for the course
+    const { data: modules, error: modulesError } = await supabase
+      .from('modules')
+      .select('id')
+      .eq('course_id', courseId);
+    
+    if (modulesError || !modules || modules.length === 0) {
+      console.error('Error fetching modules:', modulesError);
+      return 0;
+    }
+    
+    // Get module IDs
+    const moduleIds = modules.map(module => module.id);
+    
     // Get total number of lessons in the course
     const { count: totalLessons, error: countError } = await supabase
       .from('lessons')
       .select('id', { count: 'exact', head: true })
-      .in('module_id', 
-        supabase
-          .from('modules')
-          .select('id')
-          .eq('course_id', courseId)
-      );
+      .in('module_id', moduleIds);
     
-    if (countError) {
+    if (countError || totalLessons === null) {
       console.error('Error counting lessons:', countError);
       return 0;
     }
     
     // Get completed lessons for this course
-    const { data, error: progressError } = await supabase
+    const { data: progress, error: progressError } = await supabase
       .from('lesson_progress')
       .select(`
         *,
         lessons:lesson_id (
-          module_id,
-          modules:module_id (
-            course_id
-          )
+          module_id
         )
       `)
       .eq('user_id', userId)
@@ -185,9 +189,9 @@ export const calculateCourseCompletion = async (userId: string, courseId: string
     }
     
     // Filter to only count lessons in this course
-    const completedLessons = data?.filter(progress => 
-      progress.lessons?.modules?.course_id === courseId
-    ).length || 0;
+    const completedLessons = progress ? progress.filter(p => 
+      p.lessons && moduleIds.includes(p.lessons.module_id)
+    ).length : 0;
     
     if (!totalLessons) return 0;
     
