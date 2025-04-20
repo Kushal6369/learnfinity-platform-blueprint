@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { GraduationCap } from 'lucide-react';
 import SignupForm from '@/components/auth/SignupForm';
 import { useAuth } from '@/context/AuthContext';

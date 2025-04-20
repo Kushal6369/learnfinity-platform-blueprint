@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -20,21 +20,33 @@ const SignupForm = () => {
   const { signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
+  // Clear password error when either password field changes
+  useEffect(() => {
+    if (password || confirmPassword) {
+      setPasswordError('');
+    }
+  }, [password, confirmPassword]);
+
   const validatePassword = () => {
+    // Check if passwords match
     if (password !== confirmPassword) {
       setPasswordError('Passwords do not match');
       return false;
     }
+    
+    // Check length
     if (password.length < 6) {
       setPasswordError('Password must be at least 6 characters');
       return false;
     }
+    
     // Check for at least one uppercase letter, one lowercase letter, and one number
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
     if (!passwordRegex.test(password)) {
       setPasswordError('Password must include uppercase, lowercase, and number');
       return false;
     }
+    
     setPasswordError('');
     return true;
   };
@@ -90,6 +102,20 @@ const SignupForm = () => {
     }
   };
 
+  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setConfirmPassword(value);
+    
+    // Only validate if both password fields have values
+    if (password && value) {
+      if (password !== value) {
+        setPasswordError('Passwords do not match');
+      } else {
+        setPasswordError('');
+      }
+    }
+  };
+
   return (
     <div className="space-y-6 w-full max-w-md animate-fade-in">
       <div className="space-y-2 text-center">
@@ -132,10 +158,7 @@ const SignupForm = () => {
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (confirmPassword) validatePassword();
-              }}
+              onChange={(e) => setPassword(e.target.value)}
               required
               className="focus:border-purple-600"
             />
@@ -160,10 +183,7 @@ const SignupForm = () => {
               type={showConfirmPassword ? "text" : "password"}
               placeholder="••••••••"
               value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value);
-                if (e.target.value) validatePassword();
-              }}
+              onChange={handleConfirmPasswordChange}
               required
               className="focus:border-purple-600"
             />
