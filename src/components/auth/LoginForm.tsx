@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,16 +12,19 @@ import { Separator } from '@/components/ui/separator';
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
+
+  const isAdminEmail = email === 'saikushalulli@gmail.com';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
+      const success = await login(email, password, isAdminEmail ? employeeId : undefined);
       if (success) {
         navigate('/dashboard');
       }
@@ -85,6 +89,24 @@ const LoginForm = () => {
           className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
         />
       </div>
+      
+      {isAdminEmail && (
+        <div className="space-y-2">
+          <Label htmlFor="employeeId" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Employee ID
+          </Label>
+          <Input
+            id="employeeId"
+            type="text"
+            placeholder="Enter employee ID"
+            value={employeeId}
+            onChange={(e) => setEmployeeId(e.target.value)}
+            required={isAdminEmail}
+            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+          />
+        </div>
+      )}
       
       <Button 
         type="submit" 
