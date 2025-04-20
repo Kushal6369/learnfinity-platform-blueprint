@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from '@/context/AuthContext';
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -21,6 +21,18 @@ import NotFound from "./pages/NotFound";
 import ChatbotWidget from "./components/chat/ChatbotWidget";
 
 const queryClient = new QueryClient();
+
+// Component to conditionally render ChatbotWidget
+const ChatbotWrapper = () => {
+  const location = useLocation();
+  const hideChatbotPaths = ['/login', '/signup'];
+  
+  if (hideChatbotPaths.includes(location.pathname)) {
+    return null;
+  }
+  
+  return <ChatbotWidget />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -44,7 +56,7 @@ const App = () => (
             <Route path="/admin/add-course" element={<AddCourse />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <ChatbotWidget />
+          <ChatbotWrapper />
         </BrowserRouter>
       </AuthProvider>
     </TooltipProvider>
