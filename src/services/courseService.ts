@@ -47,7 +47,11 @@ export const getPublishedCourses = async (): Promise<Course[]> => {
       return [];
     }
     
-    return data || [];
+    // Ensure rating is included in the returned data
+    return (data || []).map(course => ({
+      ...course,
+      rating: course.rating || 0
+    }));
   } catch (err) {
     console.error('Error in getPublishedCourses:', err);
     toast.error('An unexpected error occurred');
@@ -69,7 +73,11 @@ export const getInstructorCourses = async (instructorId: string): Promise<Course
       return [];
     }
     
-    return data || [];
+    // Ensure rating is included in the returned data
+    return (data || []).map(course => ({
+      ...course,
+      rating: course.rating || 0
+    }));
   } catch (err) {
     console.error('Error in getInstructorCourses:', err);
     toast.error('An unexpected error occurred');
@@ -91,8 +99,11 @@ export const getUserEnrolledCourses = async (userId: string): Promise<Course[]> 
       return [];
     }
     
-    // Transform the result to get an array of courses
-    return data.map(item => item.courses) || [];
+    // Transform the result to get an array of courses with rating
+    return (data || []).map(item => ({
+      ...item.courses,
+      rating: item.courses.rating || 0
+    }));
   } catch (err) {
     console.error('Error in getUserEnrolledCourses:', err);
     toast.error('An unexpected error occurred');
@@ -115,7 +126,10 @@ export const getCourseById = async (courseId: string): Promise<Course | null> =>
       return null;
     }
     
-    return data;
+    return {
+      ...data,
+      rating: data.rating || 0
+    };
   } catch (err) {
     console.error('Error in getCourseById:', err);
     toast.error('An unexpected error occurred');
@@ -144,7 +158,10 @@ export const createCourse = async (course: CourseCreateInput, instructorId: stri
     }
     
     toast.success('Course created successfully');
-    return data;
+    return {
+      ...data,
+      rating: 0  // New courses start with a rating of 0
+    };
   } catch (err) {
     console.error('Error in createCourse:', err);
     toast.error('An unexpected error occurred');
@@ -172,7 +189,10 @@ export const updateCourse = async (courseId: string, updates: CourseUpdateInput)
     }
     
     toast.success('Course updated successfully');
-    return data;
+    return {
+      ...data,
+      rating: data.rating || 0
+    };
   } catch (err) {
     console.error('Error in updateCourse:', err);
     toast.error('An unexpected error occurred');

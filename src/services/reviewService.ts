@@ -37,11 +37,11 @@ export const getCourseReviews = async (courseId: string): Promise<Review[]> => {
     }
     
     // Transform the response to match the Review interface
-    return data.map(review => ({
+    return (data || []).map(review => ({
       ...review,
-      user_name: review.profiles?.name,
-      user_avatar: review.profiles?.avatar_url
-    })) || [];
+      user_name: review.profiles?.name || 'Anonymous',
+      user_avatar: review.profiles?.avatar_url || null
+    }));
   } catch (err) {
     console.error('Error in getCourseReviews:', err);
     toast.error('An unexpected error occurred');

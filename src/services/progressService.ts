@@ -137,33 +137,34 @@ export const calculateCourseCompletion = async (userId: string, courseId: string
     const { count: totalLessons, error: countError } = await supabase
       .from('lessons')
       .select('id', { count: 'exact', head: true })
-      .eq('module.course_id', courseId);
+      .in('module_id', 
+        supabase
+          .from('modules')
+          .select('id')
+          .eq('course_id', courseId)
+      );
     
     if (countError) {
       console.error('Error counting lessons:', countError);
       return 0;
     }
     
-    // Get number of completed lessons
-    const { data: completedLessons, error: completedError } = await supabase
-      .from('lesson_progress')
-      .select('lesson_id')
-      .eq('user_id', userId)
-      .eq('completed', true)
-      .in('lesson_id', supabase
-        .from('lessons')
-        .select('id')
-        .eq('module.course_id', courseId)
-      );
+    // Get completed lessons
+    const { data: userProgress, error: progressError } = await supabase.rpc('get_user_course_progress', {
+      p_user_id: userId,
+      p_course_id: courseId
+    });
     
-    if (completedError) {
-      console.error('Error counting completed lessons:', completedError);
+    if (progressError) {
+      console.error('Error counting completed lessons:', progressError);
       return 0;
     }
     
-    if (totalLessons === 0) return 0;
+    const completedLessons = userProgress ? userProgress.filter(p => p.completed).length : 0;
     
-    return Math.round((completedLessons.length / totalLessons) * 100);
+    if (!totalLessons) return 0;
+    
+    return Math.round((completedLessons / totalLessons) * 100);
   } catch (err) {
     console.error('Error in calculateCourseCompletion:', err);
     return 0;
