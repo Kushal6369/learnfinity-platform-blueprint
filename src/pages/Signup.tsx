@@ -1,16 +1,24 @@
 
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { GraduationCap } from 'lucide-react';
 import SignupForm from '@/components/auth/SignupForm';
 import { useAuth } from '@/context/AuthContext';
 
 const Signup = () => {
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   
-  // Redirect if already logged in
+  useEffect(() => {
+    // Redirect if already logged in
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+  
+  // Prevent flash of signup form if already authenticated
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
+    return null;
   }
 
   return (

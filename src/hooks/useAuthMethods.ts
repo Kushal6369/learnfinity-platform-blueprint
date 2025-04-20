@@ -40,7 +40,10 @@ export const useAuthMethods = (
   const loginWithGoogle = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google'
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
       });
 
       if (error) {
@@ -65,11 +68,13 @@ export const useAuthMethods = (
         options: {
           data: {
             name
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/login`
         }
       });
 
       if (error) {
+        console.error('Signup error:', error);
         toast.error(error.message);
         return false;
       }
@@ -93,6 +98,8 @@ export const useAuthMethods = (
           toast.error('Account created but profile setup failed');
           return true; // Still return true as the auth account was created
         }
+      } else {
+        toast.info('Please check your email to confirm your account');
       }
 
       toast.success('Account created successfully');

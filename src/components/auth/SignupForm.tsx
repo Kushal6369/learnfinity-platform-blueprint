@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LoaderCircle, Eye, EyeOff } from 'lucide-react';
+import { LoaderCircle, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const SignupForm = () => {
@@ -27,6 +27,12 @@ const SignupForm = () => {
     }
     if (password.length < 6) {
       setPasswordError('Password must be at least 6 characters');
+      return false;
+    }
+    // Check for at least one uppercase letter, one lowercase letter, and one number
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
+    if (!passwordRegex.test(password)) {
+      setPasswordError('Password must include uppercase, lowercase, and number');
       return false;
     }
     setPasswordError('');
@@ -62,8 +68,11 @@ const SignupForm = () => {
     try {
       const success = await signup(name, email, password);
       if (success) {
-        navigate('/dashboard');
+        toast.success('Signup successful! Please check your email to confirm your account.');
+        navigate('/login');
       }
+    } catch (error) {
+      console.error('Form submission error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -72,10 +81,10 @@ const SignupForm = () => {
   const handleGoogleSignup = async () => {
     setIsLoading(true);
     try {
-      const success = await loginWithGoogle();
-      if (success) {
-        navigate('/dashboard');
-      }
+      await loginWithGoogle();
+      // Google auth redirects, so no need for navigation here
+    } catch (error) {
+      console.error('Google signup error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -138,6 +147,9 @@ const SignupForm = () => {
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
+          <p className="text-xs text-gray-500">
+            Password must be at least 6 characters with uppercase, lowercase, and number
+          </p>
         </div>
         
         <div className="space-y-2">
@@ -163,7 +175,12 @@ const SignupForm = () => {
               {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
+          {passwordError && (
+            <p className="text-sm text-red-500 flex items-center gap-1 mt-1">
+              <AlertCircle size={14} />
+              {passwordError}
+            </p>
+          )}
         </div>
         
         <Button
