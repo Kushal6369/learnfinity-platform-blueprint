@@ -1,4 +1,3 @@
-
 import { User, Theme } from '@/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,7 +22,7 @@ export const useAuthMethods = (
       }
 
       if (email === 'saikushalulli@gmail.com' && employeeId !== 'RA2211003011971') {
-        await logout();
+        await supabase.auth.signOut();
         toast.error('Invalid employee ID');
         return false;
       }
@@ -61,14 +60,11 @@ export const useAuthMethods = (
 
   const signup = async (name: string, email: string, password: string) => {
     try {
-      // First, sign up the user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            name
-          },
+          data: { name },
           emailRedirectTo: `${window.location.origin}/login`
         }
       });
@@ -79,7 +75,6 @@ export const useAuthMethods = (
         return false;
       }
 
-      // Create a profile for the new user after successful signup
       if (data.user) {
         const { error: profileError } = await supabase
           .from('profiles')
@@ -87,8 +82,8 @@ export const useAuthMethods = (
             id: data.user.id,
             name,
             email,
-            role: 'user', // Default role for new users
-            theme: 'dark', // Default theme
+            role: 'user',
+            theme: 'dark',
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           });
@@ -96,13 +91,11 @@ export const useAuthMethods = (
         if (profileError) {
           console.error('Profile creation error:', profileError);
           toast.error('Account created but profile setup failed');
-          return true; // Still return true as the auth account was created
+          return true;
         }
-      } else {
-        toast.info('Please check your email to confirm your account');
       }
 
-      toast.success('Account created successfully');
+      toast.success('Account created successfully! Please check your email to confirm your account.');
       return true;
     } catch (error) {
       console.error('Signup error:', error);

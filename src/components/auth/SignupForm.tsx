@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -20,7 +19,6 @@ const SignupForm = () => {
   const { signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
-  // Clear password error when either password field changes
   useEffect(() => {
     if (password || confirmPassword) {
       setPasswordError('');
@@ -28,19 +26,16 @@ const SignupForm = () => {
   }, [password, confirmPassword]);
 
   const validatePassword = () => {
-    // Check if passwords match
     if (password !== confirmPassword) {
       setPasswordError('Passwords do not match');
       return false;
     }
     
-    // Check length
     if (password.length < 6) {
       setPasswordError('Password must be at least 6 characters');
       return false;
     }
     
-    // Check for at least one uppercase letter, one lowercase letter, and one number
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
     if (!passwordRegex.test(password)) {
       setPasswordError('Password must include uppercase, lowercase, and number');
@@ -85,6 +80,7 @@ const SignupForm = () => {
       }
     } catch (error) {
       console.error('Form submission error:', error);
+      toast.error('An error occurred during signup');
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +90,6 @@ const SignupForm = () => {
     setIsLoading(true);
     try {
       await loginWithGoogle();
-      // Google auth redirects, so no need for navigation here
     } catch (error) {
       console.error('Google signup error:', error);
     } finally {
@@ -106,7 +101,6 @@ const SignupForm = () => {
     const value = e.target.value;
     setConfirmPassword(value);
     
-    // Only validate if both password fields have values
     if (password && value) {
       if (password !== value) {
         setPasswordError('Passwords do not match');

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
@@ -25,6 +24,9 @@ const LoginForm = () => {
       if (success) {
         navigate('/dashboard');
       }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('An error occurred during login');
     } finally {
       setIsLoading(false);
     }
@@ -37,6 +39,9 @@ const LoginForm = () => {
       if (success) {
         navigate('/dashboard');
       }
+    } catch (error) {
+      console.error('Google login error:', error);
+      toast.error('An error occurred during Google login');
     } finally {
       setIsLoading(false);
     }
