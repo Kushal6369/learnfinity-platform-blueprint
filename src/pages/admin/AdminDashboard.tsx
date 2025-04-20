@@ -1,15 +1,18 @@
 
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend, PieChart, Pie, Cell } from 'recharts';
-import { Users, BookOpen, Award, TrendingUp, ArrowUpRight, ArrowRight } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { Button } from '@/components/ui/button';
+import { Users, BookOpen, Award, TrendingUp, ArrowUpRight, ArrowRight, PlusCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-// Mock data for enrollment chart
+// Mock data for enrollment chart (would be replaced with real data)
 const enrollmentData = [
   { name: 'Jan', enrollments: 120 },
   { name: 'Feb', enrollments: 140 },
@@ -20,37 +23,27 @@ const enrollmentData = [
   { name: 'Jul', enrollments: 350 },
 ];
 
-// Mock data for course completions
-const completionData = [
-  { name: 'Web Dev', completions: 86 },
-  { name: 'JavaScript', completions: 65 },
-  { name: 'UX Design', completions: 42 },
-  { name: 'Data Science', completions: 53 },
-  { name: 'Mobile Dev', completions: 30 },
+// Mock data for student progress (would be replaced with real data)
+const studentProgressData = [
+  { id: 1, name: 'John Smith', email: 'john@example.com', coursesEnrolled: 3, completionRate: 85 },
+  { id: 2, name: 'Sara Johnson', email: 'sara@example.com', coursesEnrolled: 5, completionRate: 92 },
+  { id: 3, name: 'Michael Brown', email: 'michael@example.com', coursesEnrolled: 2, completionRate: 45 },
+  { id: 4, name: 'Emily Davis', email: 'emily@example.com', coursesEnrolled: 4, completionRate: 78 },
+  { id: 5, name: 'Robert Wilson', email: 'robert@example.com', coursesEnrolled: 1, completionRate: 30 },
 ];
 
-// Mock data for revenue distribution
-const revenueData = [
-  { name: 'Web Development', value: 45 },
-  { name: 'Data Science', value: 25 },
-  { name: 'Design', value: 15 },
-  { name: 'Business', value: 10 },
-  { name: 'Other', value: 5 },
+// Top courses data (would be replaced with real data)
+const topCoursesData = [
+  { name: 'Web Development', students: 450 },
+  { name: 'Data Science', students: 350 },
+  { name: 'UX Design', students: 280 },
+  { name: 'JavaScript', students: 220 },
+  { name: 'Mobile App Dev', students: 190 },
 ];
-
-// Mock data for recent enrollments
-const recentEnrollments = [
-  { id: 1, user: 'John Smith', course: 'Introduction to Web Development', date: '2 hours ago' },
-  { id: 2, user: 'Sara Johnson', course: 'Advanced JavaScript Concepts', date: '5 hours ago' },
-  { id: 3, user: 'Michael Brown', course: 'UX Design Fundamentals', date: '6 hours ago' },
-  { id: 4, user: 'Emily Davis', course: 'Data Science with Python', date: '1 day ago' },
-  { id: 5, user: 'Robert Wilson', course: 'Mobile App Development', date: '1 day ago' },
-];
-
-const COLORS = ['#8b5cf6', '#60a5fa', '#4ade80', '#f97316', '#f43f5e'];
 
 const AdminDashboard = () => {
   const { isAuthenticated, isAdmin } = useAuth();
+  const navigate = useNavigate();
   
   // Redirect if not authenticated or not admin
   if (!isAuthenticated) {
@@ -74,12 +67,18 @@ const AdminDashboard = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-semibold">Admin Dashboard</h1>
-                <p className="text-gray-600 mt-1">Overview of your platform's performance</p>
+                <p className="text-gray-600 mt-1">Manage enrollments, students, and courses</p>
               </div>
               
               <div className="flex gap-2">
-                <Button variant="outline">Export Report</Button>
-                <Button className="bg-purple-600 hover:bg-purple-700">Add New Course</Button>
+                <Button variant="outline" onClick={() => navigate('/admin/reports')}>View Reports</Button>
+                <Button 
+                  className="bg-purple-600 hover:bg-purple-700" 
+                  onClick={() => navigate('/admin/add-course')}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add New Course
+                </Button>
               </div>
             </div>
             
@@ -165,9 +164,9 @@ const AdminDashboard = () => {
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Enrollment trends */}
-              <Card className="col-span-1">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Enrollment Trends</CardTitle>
+                  <CardTitle>Enrollment Trends</CardTitle>
                   <CardDescription>Monthly course enrollments</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -193,24 +192,24 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
               
-              {/* Course completions */}
-              <Card className="col-span-1">
+              {/* Top courses */}
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Course Completions</CardTitle>
-                  <CardDescription>Top courses by completion rate</CardDescription>
+                  <CardTitle>Top Courses</CardTitle>
+                  <CardDescription>By number of enrolled students</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
-                        data={completionData}
+                        data={topCoursesData}
                         margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="completions" fill="#60a5fa" />
+                        <Bar dataKey="students" fill="#60a5fa" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -218,85 +217,68 @@ const AdminDashboard = () => {
               </Card>
             </div>
             
-            {/* Revenue and Recent Enrollments */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Revenue distribution */}
-              <Card className="col-span-1">
-                <CardHeader>
-                  <CardTitle className="text-lg">Revenue Distribution</CardTitle>
-                  <CardDescription>By course category</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={revenueData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {revenueData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="flex flex-wrap justify-center gap-4 mt-4">
-                    {revenueData.map((entry, index) => (
-                      <div key={`legend-${index}`} className="flex items-center">
-                        <div 
-                          className="w-3 h-3 rounded-full mr-1" 
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }} 
-                        />
-                        <span className="text-sm text-gray-600">{entry.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Recent enrollments */}
-              <Card className="col-span-1 lg:col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-lg">Recent Enrollments</CardTitle>
-                  <CardDescription>New students enrolled in courses</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-4">
-                    {recentEnrollments.map((enrollment) => (
-                      <li 
-                        key={enrollment.id}
-                        className="border-b border-gray-100 pb-3 last:border-0 last:pb-0"
-                      >
-                        <div className="flex justify-between">
-                          <div>
-                            <p className="font-medium">{enrollment.user}</p>
-                            <p className="text-sm text-gray-600">{enrollment.course}</p>
+            {/* Student Progress Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Student Progress</CardTitle>
+                <CardDescription>Overview of student enrollment and course completion</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Courses Enrolled</TableHead>
+                      <TableHead>Completion Rate</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {studentProgressData.map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell className="font-medium">{student.name}</TableCell>
+                        <TableCell>{student.email}</TableCell>
+                        <TableCell>{student.coursesEnrolled}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-full h-2 bg-gray-200 rounded-full">
+                              <div 
+                                className={`h-full rounded-full ${
+                                  student.completionRate >= 80 ? 'bg-green-500' : 
+                                  student.completionRate >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                                }`} 
+                                style={{ width: `${student.completionRate}%` }}
+                              />
+                            </div>
+                            <span className="text-sm font-medium">{student.completionRate}%</span>
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {enrollment.date}
-                          </div>
-                        </div>
-                      </li>
+                        </TableCell>
+                        <TableCell>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => navigate(`/admin/student/${student.id}`)}
+                          >
+                            View Details
+                          </Button>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="ghost" className="w-full text-purple-600" asChild>
-                    <a href="/admin/users" className="flex items-center justify-center">
-                      View All Enrollments
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </a>
+                  </TableBody>
+                </Table>
+                <div className="mt-4 flex justify-center">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate('/admin/students')} 
+                    className="text-purple-600"
+                  >
+                    View All Students
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
-                </CardFooter>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </main>
       </div>
