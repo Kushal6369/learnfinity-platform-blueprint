@@ -13,7 +13,7 @@ export interface Course {
   price: number;
   duration: string;
   level: string;
-  rating: number | null;
+  rating: number;
   created_at: string;
   updated_at: string;
   published: boolean;

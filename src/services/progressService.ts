@@ -38,17 +38,32 @@ export const getUserLessonProgress = async (userId: string, lessonId: string): P
 // Get all progress for a user in a course
 export const getUserCourseProgress = async (userId: string, courseId: string): Promise<LessonProgress[]> => {
   try {
-    const { data, error } = await supabase.rpc('get_user_course_progress', {
-      p_user_id: userId,
-      p_course_id: courseId
-    });
+    // Use a direct query instead of RPC to avoid type issues
+    const { data, error } = await supabase
+      .from('lesson_progress')
+      .select(`
+        *,
+        lessons:lesson_id (
+          id,
+          module_id,
+          modules:module_id (
+            course_id
+          )
+        )
+      `)
+      .eq('user_id', userId);
     
     if (error) {
       console.error('Error fetching course progress:', error);
       return [];
     }
     
-    return data || [];
+    // Filter to only include progress for lessons in the specified course
+    const courseProgress = data?.filter(progress => 
+      progress.lessons?.modules?.course_id === courseId
+    ) || [];
+    
+    return courseProgress;
   } catch (err) {
     console.error('Error in getUserCourseProgress:', err);
     return [];
@@ -149,18 +164,30 @@ export const calculateCourseCompletion = async (userId: string, courseId: string
       return 0;
     }
     
-    // Get completed lessons
-    const { data: userProgress, error: progressError } = await supabase.rpc('get_user_course_progress', {
-      p_user_id: userId,
-      p_course_id: courseId
-    });
+    // Get completed lessons for this course
+    const { data, error: progressError } = await supabase
+      .from('lesson_progress')
+      .select(`
+        *,
+        lessons:lesson_id (
+          module_id,
+          modules:module_id (
+            course_id
+          )
+        )
+      `)
+      .eq('user_id', userId)
+      .eq('completed', true);
     
     if (progressError) {
       console.error('Error counting completed lessons:', progressError);
       return 0;
     }
     
-    const completedLessons = userProgress ? userProgress.filter(p => p.completed).length : 0;
+    // Filter to only count lessons in this course
+    const completedLessons = data?.filter(progress => 
+      progress.lessons?.modules?.course_id === courseId
+    ).length || 0;
     
     if (!totalLessons) return 0;
     
