@@ -58,7 +58,8 @@ export const useAuthMethods = (
 
   const signup = async (name: string, email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      // First, sign up the user with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -71,6 +72,27 @@ export const useAuthMethods = (
       if (error) {
         toast.error(error.message);
         return false;
+      }
+
+      // Create a profile for the new user after successful signup
+      if (data.user) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            id: data.user.id,
+            name,
+            email,
+            role: 'user', // Default role for new users
+            theme: 'dark', // Default theme
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+        if (profileError) {
+          console.error('Profile creation error:', profileError);
+          toast.error('Account created but profile setup failed');
+          return true; // Still return true as the auth account was created
+        }
       }
 
       toast.success('Account created successfully');
