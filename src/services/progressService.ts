@@ -164,7 +164,7 @@ export const calculateCourseCompletion = async (userId: string, courseId: string
     const { count: totalLessons, error: countError } = await supabase
       .from('lessons')
       .select('id', { count: 'exact', head: true })
-      .in('module_id', moduleIds);
+      .in('module_id', moduleIds as string[]);
     
     if (countError || totalLessons === null) {
       console.error('Error counting lessons:', countError);
