@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, ChevronRight, Users, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -8,11 +9,13 @@ import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { enrollUserInCourse, isUserEnrolled } from '@/services/courseService';
 
 export type CourseType = {
   id: string;
   title: string;
   instructor: string;
+  instructor_id?: string;
   category: string;
   thumbnailUrl: string;
   rating: number;
@@ -21,6 +24,7 @@ export type CourseType = {
   price: number;
   progress?: number;
   enrolled?: boolean;
+  level?: string;
 };
 
 type CourseCardProps = {
@@ -40,10 +44,24 @@ const CourseCard = ({ course, className }: CourseCardProps) => {
     studentsCount,
     price,
     progress,
-    enrolled
+    enrolled: initialEnrolled = false
   } = course;
 
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const [isEnrolled, setIsEnrolled] = useState(initialEnrolled);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Check if user is enrolled when component mounts
+    const checkEnrollment = async () => {
+      if (user && isAuthenticated) {
+        const enrolled = await isUserEnrolled(user.id, id);
+        setIsEnrolled(enrolled);
+      }
+    };
+
+    checkEnrollment();
+  }, [user, id, isAuthenticated]);
 
   const renderStars = (rating: number) => {
     return Array(5)
@@ -67,8 +85,14 @@ const CourseCard = ({ course, className }: CourseCardProps) => {
       return;
     }
 
-    // For now, just redirect to the course page
-    window.location.href = `/course/${id}`;
+    setIsLoading(true);
+    if (user) {
+      const success = await enrollUserInCourse(user.id, id);
+      if (success) {
+        setIsEnrolled(true);
+      }
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -119,7 +143,7 @@ const CourseCard = ({ course, className }: CourseCardProps) => {
       </CardContent>
       
       <CardFooter className="p-4 pt-0 flex justify-between items-center">
-        {enrolled ? (
+        {isEnrolled ? (
           <Button variant="secondary" asChild>
             <Link to={`/course/${id}`} className="flex items-center">
               Continue Learning
@@ -134,8 +158,9 @@ const CourseCard = ({ course, className }: CourseCardProps) => {
             <Button 
               className="bg-purple-600 hover:bg-purple-700"
               onClick={handleEnroll}
+              disabled={isLoading}
             >
-              Enroll Now
+              {isLoading ? 'Enrolling...' : 'Enroll Now'}
             </Button>
           </div>
         )}

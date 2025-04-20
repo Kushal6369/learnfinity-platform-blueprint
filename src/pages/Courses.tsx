@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import CourseGrid from '@/components/courses/CourseGrid';
 import { CourseType } from '@/components/courses/CourseCard';
@@ -26,100 +25,8 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-
-// Mock data for courses
-const allCourses: CourseType[] = [
-  {
-    id: '1',
-    title: 'Introduction to Web Development',
-    instructor: 'Dr. Sarah Johnson',
-    category: 'Development',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1593720213428-28a5b9e94613',
-    rating: 4.8,
-    duration: '6 hours',
-    studentsCount: 12564,
-    price: 49.99
-  },
-  {
-    id: '2',
-    title: 'Advanced JavaScript Concepts',
-    instructor: 'Michael Thompson',
-    category: 'Programming',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c',
-    rating: 4.9,
-    duration: '8.5 hours',
-    studentsCount: 9872,
-    price: 59.99
-  },
-  {
-    id: '3',
-    title: 'UX Design Fundamentals',
-    instructor: 'Emily Chen',
-    category: 'Design',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1545235617-9465d2a55698',
-    rating: 4.7,
-    duration: '5 hours',
-    studentsCount: 8453,
-    price: 44.99
-  },
-  {
-    id: '4',
-    title: 'Data Science with Python',
-    instructor: 'Prof. Alex Morgan',
-    category: 'Data Science',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71',
-    rating: 4.6,
-    duration: '10 hours',
-    studentsCount: 15236,
-    price: 69.99
-  },
-  {
-    id: '5',
-    title: 'Mobile App Development with React Native',
-    instructor: 'Jennifer Lee',
-    category: 'Development',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c',
-    rating: 4.5,
-    duration: '9 hours',
-    studentsCount: 6438,
-    price: 54.99
-  },
-  {
-    id: '6',
-    title: 'Machine Learning Fundamentals',
-    instructor: 'Dr. Robert Smith',
-    category: 'Data Science',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1488229297570-58520851e868',
-    rating: 4.8,
-    duration: '12 hours',
-    studentsCount: 10329,
-    price: 79.99
-  },
-  {
-    id: '7',
-    title: 'Graphic Design Masterclass',
-    instructor: 'Sophia Wang',
-    category: 'Design',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1626785774573-4b799315345d',
-    rating: 4.7,
-    duration: '8 hours',
-    studentsCount: 7865,
-    price: 49.99
-  },
-  {
-    id: '8',
-    title: 'Business Analytics',
-    instructor: 'James Wilson',
-    category: 'Business',
-    thumbnailUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f',
-    rating: 4.6,
-    duration: '7.5 hours',
-    studentsCount: 9217,
-    price: 64.99
-  },
-];
-
-const categories = ['All', 'Development', 'Programming', 'Design', 'Data Science', 'Business'];
+import { getPublishedCourses } from '@/services/courseService';
+import { Course } from '@/services/courseService';
 
 const Courses = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -128,6 +35,45 @@ const Courses = () => {
   const [ratingFilter, setRatingFilter] = useState<number>(0);
   const [sortBy, setSortBy] = useState<string>('popular');
   const [appliedFilters, setAppliedFilters] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [allCourses, setAllCourses] = useState<CourseType[]>([]);
+  const [categories, setCategories] = useState<string[]>(['All']);
+  
+  useEffect(() => {
+    const fetchCourses = async () => {
+      setIsLoading(true);
+      try {
+        const courses = await getPublishedCourses();
+        
+        // Extract unique categories
+        const uniqueCategories = ['All', ...new Set(courses.map(course => course.category))];
+        setCategories(uniqueCategories);
+        
+        // Transform data to match CourseType
+        const transformedCourses: CourseType[] = courses.map(course => ({
+          id: course.id,
+          title: course.title,
+          instructor: 'Instructor Name', // This would normally come from a join with profiles
+          instructor_id: course.instructor_id,
+          category: course.category,
+          thumbnailUrl: course.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3',
+          rating: course.rating || 0,
+          duration: course.duration,
+          studentsCount: 0, // This would normally come from a count of enrollments
+          price: course.price,
+          level: course.level
+        }));
+        
+        setAllCourses(transformedCourses);
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchCourses();
+  }, []);
   
   // Filter courses based on search query and filters
   const filteredCourses = allCourses.filter(course => {
@@ -429,7 +375,11 @@ const Courses = () => {
           </div>
           
           {/* Courses grid */}
-          {sortedCourses.length > 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <p>Loading courses...</p>
+            </div>
+          ) : sortedCourses.length > 0 ? (
             <CourseGrid courses={sortedCourses} />
           ) : (
             <div className="text-center py-12">
