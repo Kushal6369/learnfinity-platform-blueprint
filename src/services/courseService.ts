@@ -160,7 +160,7 @@ export const createCourse = async (course: CourseCreateInput, instructorId: stri
     toast.success('Course created successfully');
     return {
       ...data,
-      rating: 0  // New courses start with a rating of 0
+      rating: data.rating || 0  // New courses start with a rating of 0
     };
   } catch (err) {
     console.error('Error in createCourse:', err);
