@@ -80,36 +80,50 @@ const AdminSettings = () => {
   const fetchAdmins = async () => {
     setIsLoading(true);
     try {
-      // First, get all admin profile IDs and data
+      // Fetch all profiles with 'admin' role
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('id, name, employee_id, created_at')
         .eq('role', 'admin')
         .order('created_at', { ascending: true });
-        
+
       if (profilesError) throw profilesError;
-      
+
       if (profilesData && profilesData.length > 0) {
-        // Get user emails from auth.users table using the IDs from profiles
-        const userEmails = await Promise.all(
-          profilesData.map(async (profile) => {
-            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
-              profile.id
-            );
-            
-            if (userError) {
-              console.error('Error fetching user:', userError);
-              return { ...profile, email: 'Email unavailable' };
+        // For each admin, fetch the email address from auth.users
+        const adminList: AdminUser[] = await Promise.all(
+          profilesData.map(async (profile): Promise<AdminUser> => {
+            try {
+              const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
+                profile.id
+              );
+
+              let email = 'Email unavailable';
+              if (userData && userData.user && typeof userData.user.email === 'string') {
+                email = userData.user.email;
+              }
+
+              return {
+                id: profile.id,
+                name: profile.name,
+                email,
+                employee_id: profile.employee_id ?? null,
+                created_at: profile.created_at,
+              };
+            } catch (err) {
+              // In case of error, always return the AdminUser with 'Email unavailable'
+              return {
+                id: profile.id,
+                name: profile.name,
+                email: 'Email unavailable',
+                employee_id: profile.employee_id ?? null,
+                created_at: profile.created_at,
+              };
             }
-            
-            return {
-              ...profile,
-              email: userData?.user?.email || 'Email unavailable',
-            };
           })
         );
-        
-        setAdmins(userEmails as AdminUser[]);
+
+        setAdmins(adminList);
       } else {
         setAdmins([]);
       }
