@@ -15,11 +15,11 @@ export const useAuthMethods = (
   const { login, loginWithGoogle } = useLoginMethods();
   const { signup } = useSignupMethods();
   const { requestPasswordReset, verifyOTP, resetPassword } = usePasswordMethods();
-  const { logout, updateProfile } = useProfileMethods(user);
+  const { logout, updateProfile, updateTheme } = useProfileMethods(user);
 
   const toggleTheme = async () => {
     if (!user) {
-      // For non-authenticated users, just toggle the theme locally
+      // For non-authenticated users, save theme to localStorage for persistence
       const newTheme = theme === 'light' ? 'dark' : 'light';
       setTheme(newTheme);
       document.documentElement.classList.toggle('dark', newTheme === 'dark');
@@ -41,6 +41,8 @@ export const useAuthMethods = (
         return;
       }
       
+      // Also update localStorage even for authenticated users for better persistence
+      localStorage.setItem('theme', newTheme);
       setTheme(newTheme);
       document.documentElement.classList.toggle('dark', newTheme === 'dark');
       toast.success(`Theme updated to ${newTheme} mode`);

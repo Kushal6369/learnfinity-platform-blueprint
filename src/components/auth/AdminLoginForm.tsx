@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, Badge, Eye, EyeOff, Info } from 'lucide-react';
+import { Mail, Lock, Badge, Eye, EyeOff, Info, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const AdminLoginForm = () => {
   const [email, setEmail] = useState('');
@@ -16,8 +17,31 @@ const AdminLoginForm = () => {
   const [employeeId, setEmployeeId] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // Load saved admin email if available
+  useEffect(() => {
+    const savedEmail = localStorage.getItem('adminEmail');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+    
+    // Auto-populate employee ID for demo account
+    if (savedEmail === 'saikushalulli@gmail.com') {
+      const savedEmployeeId = localStorage.getItem('adminEmployeeId');
+      if (savedEmployeeId) {
+        setEmployeeId(savedEmployeeId);
+      }
+    }
+  }, []);
+
+  const validateEmployeeId = (id: string) => {
+    // Basic validation - at least 8 characters, alphanumeric
+    return id.length >= 8 && /^[A-Za-z0-9]+$/.test(id);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +54,21 @@ const AdminLoginForm = () => {
         return;
       }
 
+      if (!validateEmployeeId(employeeId)) {
+        toast.error('Employee ID must be at least 8 characters and contain only letters and numbers');
+        setIsLoading(false);
+        return;
+      }
+
+      // Save admin credentials if remember me is checked
+      if (rememberMe) {
+        localStorage.setItem('adminEmail', email);
+        localStorage.setItem('adminEmployeeId', employeeId);
+      } else {
+        localStorage.removeItem('adminEmail');
+        localStorage.removeItem('adminEmployeeId');
+      }
+
       const success = await login(email, password, employeeId);
       if (success) {
         toast.success('Admin login successful! Redirecting...');
@@ -37,6 +76,9 @@ const AdminLoginForm = () => {
           navigate('/admin/dashboard');
         }, 1000);
       }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast.error('An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -67,6 +109,7 @@ const AdminLoginForm = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
           className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:ring-purple-500 focus:border-purple-500"
+          autoComplete="email"
         />
       </div>
       
@@ -84,6 +127,7 @@ const AdminLoginForm = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:ring-purple-500 focus:border-purple-500 pr-10"
+            autoComplete="current-password"
           />
           <button
             type="button"
@@ -121,12 +165,27 @@ const AdminLoginForm = () => {
           value={employeeId}
           onChange={(e) => setEmployeeId(e.target.value)}
           required
-          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:ring-purple-500 focus:border-purple-500"
+          className={`bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:ring-purple-500 focus:border-purple-500 ${
+            employeeId && !validateEmployeeId(employeeId) ? 'border-red-500' : ''
+          }`}
           aria-describedby="employeeId-format"
+          autoComplete="off"
         />
         <p id="employeeId-format" className="text-xs text-gray-400">
-          Enter your unique administrator employee ID
+          Enter your unique administrator employee ID (minimum 8 alphanumeric characters)
         </p>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+          id="remember-me" 
+          checked={rememberMe} 
+          onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+          className="data-[state=checked]:bg-purple-600"
+        />
+        <Label htmlFor="remember-me" className="text-sm text-gray-300 cursor-pointer">
+          Remember my admin credentials
+        </Label>
       </div>
       
       <Button 

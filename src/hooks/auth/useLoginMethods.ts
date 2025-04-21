@@ -23,9 +23,9 @@ export const useLoginMethods = () => {
           return false;
         }
 
-        // Validate employee ID format (basic validation)
-        if (!/^[A-Za-z0-9]+$/.test(employeeId)) {
-          toast.error('Invalid employee ID format');
+        // Validate employee ID format (at least 8 characters, alphanumeric)
+        if (employeeId.length < 8 || !/^[A-Za-z0-9]+$/.test(employeeId)) {
+          toast.error('Employee ID must be at least 8 characters and contain only letters and numbers');
           return false;
         }
       }
@@ -39,6 +39,8 @@ export const useLoginMethods = () => {
           toast.error('Invalid email or password. Please try again.');
         } else if (error.message.includes('Email not confirmed')) {
           toast.error('Please confirm your email address before logging in.');
+        } else if (error.message.includes('rate limit')) {
+          toast.error('Too many login attempts. Please try again later.');
         } else {
           toast.error(error.message);
         }
@@ -54,11 +56,17 @@ export const useLoginMethods = () => {
         }
 
         // Verify admin role in profile
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
           .single();
+
+        if (profileError) {
+          await supabase.auth.signOut();
+          toast.error('Error verifying admin account');
+          return false;
+        }
 
         if (!profileData || profileData.role !== 'admin') {
           await supabase.auth.signOut();
