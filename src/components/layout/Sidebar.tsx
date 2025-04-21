@@ -59,8 +59,8 @@ const Sidebar = ({ className }: SidebarProps) => {
               <SidebarLink to="/admin/courses" icon={BookOpen}>Courses</SidebarLink>
               <SidebarLink to="/admin/course-management" icon={PlusSquare}>Course Management</SidebarLink>
               <SidebarLink to="/admin/users" icon={Users}>Users</SidebarLink>
+              <SidebarLink to="/admin/settings" icon={Settings}>Admin Settings</SidebarLink>
               <SidebarLink to="/admin/reports" icon={Database}>Reports</SidebarLink>
-              <SidebarLink to="/admin/settings" icon={Settings}>Settings</SidebarLink>
               <div className="pt-4 mt-4 border-t border-gray-200">
                 <SidebarLink to="/dashboard" icon={LayoutDashboard} className="text-blue-600 hover:text-blue-800 hover:bg-blue-50">
                   Switch to Student View
