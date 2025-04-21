@@ -3,6 +3,19 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useSignupMethods = () => {
+  const sendConfirmationEmail = async (name: string, email: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke("send-confirmation-email", {
+        body: { name, email }
+      });
+      if (error) {
+        console.error("Failed to send confirmation email:", error);
+      }
+    } catch (err) {
+      console.error("Error sending confirmation email:", err);
+    }
+  };
+
   const signup = async (name: string, email: string, password: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -36,8 +49,10 @@ export const useSignupMethods = () => {
         if (profileError) {
           console.error('Profile creation error:', profileError);
           toast.error('Account created but profile setup failed');
-          return true;
+          // Proceed anyway
         }
+        // Send a custom confirmation email to user and admin
+        await sendConfirmationEmail(name, email);
       }
 
       toast.success('Account created successfully! Please check your email to confirm your account.');
