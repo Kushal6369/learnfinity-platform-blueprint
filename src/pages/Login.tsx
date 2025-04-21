@@ -1,15 +1,45 @@
 
-import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { GraduationCap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Navigate, Link } from 'react-router-dom';
+import { GraduationCap, Moon, Sun, Laptop } from 'lucide-react';
 import LoginForm from '@/components/auth/LoginForm';
 import AdminLoginForm from '@/components/auth/AdminLoginForm';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Login = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, theme: userTheme, toggleTheme } = useAuth();
   const [activeTab, setActiveTab] = useState<'user' | 'admin'>('user');
+  const [localTheme, setLocalTheme] = useState<'light' | 'dark'>(userTheme || 'dark');
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Handle theme toggling for non-authenticated users
+  const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      setLocalTheme(systemTheme);
+      document.documentElement.classList.toggle('dark', systemTheme === 'dark');
+    } else {
+      setLocalTheme(theme);
+      document.documentElement.classList.toggle('dark', theme === 'dark');
+    }
+  };
+
+  useEffect(() => {
+    // Short timeout to prevent flash of content
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   // Redirect if already logged in
   if (isAuthenticated) {
@@ -17,30 +47,85 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-gray-900 text-white">
+    <div className={cn(
+      "min-h-screen flex flex-col md:flex-row transition-colors duration-300",
+      localTheme === 'dark' ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
+    )}>
       {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-6 md:p-10">
         <div className="w-full max-w-md">
-          <div className="flex justify-center mb-8">
-            <a href="/" className="flex items-center text-purple-400">
+          <div className="flex justify-between items-center mb-8">
+            <Link to="/" className={cn(
+              "flex items-center",
+              localTheme === 'dark' ? "text-purple-400" : "text-purple-600"
+            )}>
               <GraduationCap className="h-8 w-8" />
               <span className="ml-2 text-xl font-bold">LearnFinity</span>
-            </a>
+            </Link>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className={cn(
+                  "rounded-full",
+                  localTheme === 'dark' ? "text-gray-300 hover:text-white hover:bg-gray-800" : 
+                  "text-gray-700 hover:text-gray-900 hover:bg-gray-200"
+                )}>
+                  {localTheme === 'dark' ? (
+                    <Moon className="h-5 w-5" />
+                  ) : (
+                    <Sun className="h-5 w-5" />
+                  )}
+                  <span className="sr-only">Toggle theme</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className={cn(
+                localTheme === 'dark' ? "bg-gray-800 border-gray-700" : "bg-white"
+              )}>
+                <DropdownMenuItem onClick={() => handleThemeChange('light')} className="cursor-pointer">
+                  <Sun className="mr-2 h-4 w-4" />
+                  <span>Light</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleThemeChange('dark')} className="cursor-pointer">
+                  <Moon className="mr-2 h-4 w-4" />
+                  <span>Dark</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleThemeChange('system')} className="cursor-pointer">
+                  <Laptop className="mr-2 h-4 w-4" />
+                  <span>System</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold">Welcome Back</h1>
-            <p className="text-gray-400 mt-2">Sign in to your account to continue</p>
+            <h1 className={cn(
+              "text-3xl font-bold",
+              localTheme === 'dark' ? "" : "text-gray-800"
+            )}>Welcome Back</h1>
+            <p className={cn(
+              "mt-2",
+              localTheme === 'dark' ? "text-gray-400" : "text-gray-600"
+            )}>Sign in to your account to continue</p>
           </div>
           
           {/* Login Type Tabs */}
-          <div className="flex mb-6 bg-gray-800 rounded-lg p-1">
+          <div className={cn(
+            "flex mb-6 rounded-lg p-1",
+            localTheme === 'dark' ? "bg-gray-800" : "bg-gray-200"
+          )}>
             <button
               onClick={() => setActiveTab('user')}
               className={cn(
                 "flex-1 py-2 text-center rounded-md transition-all",
-                activeTab === 'user' ? "bg-gray-700 text-white" : "text-gray-400 hover:text-white"
+                activeTab === 'user' 
+                  ? localTheme === 'dark' 
+                    ? "bg-gray-700 text-white" 
+                    : "bg-white text-gray-900 shadow-sm"
+                  : localTheme === 'dark'
+                    ? "text-gray-400 hover:text-white"
+                    : "text-gray-600 hover:text-gray-900"
               )}
+              aria-pressed={activeTab === 'user'}
             >
               User Login
             </button>
@@ -48,20 +133,53 @@ const Login = () => {
               onClick={() => setActiveTab('admin')}
               className={cn(
                 "flex-1 py-2 text-center rounded-md transition-all",
-                activeTab === 'admin' ? "bg-gray-700 text-white" : "text-gray-400 hover:text-white"
+                activeTab === 'admin' 
+                  ? localTheme === 'dark' 
+                    ? "bg-gray-700 text-white" 
+                    : "bg-white text-gray-900 shadow-sm"
+                  : localTheme === 'dark'
+                    ? "text-gray-400 hover:text-white"
+                    : "text-gray-600 hover:text-gray-900"
               )}
+              aria-pressed={activeTab === 'admin'}
             >
               Admin Login
             </button>
           </div>
           
-          {activeTab === 'user' ? <LoginForm /> : <AdminLoginForm />}
+          {/* Show a skeleton while loading */}
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="h-10 bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-700 rounded animate-pulse"></div>
+              <div className="h-10 bg-gray-700 rounded animate-pulse"></div>
+            </div>
+          ) : (
+            activeTab === 'user' ? <LoginForm /> : <AdminLoginForm />
+          )}
         </div>
       </div>
       
-      {/* Right side - Image */}
-      <div className="hidden md:block md:flex-1 bg-cover bg-center" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3')" }}>
-        <div className="h-full w-full bg-purple-900/70 backdrop-blur-sm flex items-center justify-center">
+      {/* Right side - Image with better fallback */}
+      <div className="hidden md:block md:flex-1 bg-cover bg-center relative">
+        <div 
+          className={cn(
+            "absolute inset-0 bg-cover bg-center",
+            {"opacity-0": isLoading}
+          )}
+          style={{ 
+            backgroundImage: "url('https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?ixlib=rb-4.0.3')",
+            transition: "opacity 0.5s ease-in-out"
+          }}
+        ></div>
+        <div 
+          className={cn(
+            "absolute inset-0",
+            localTheme === 'dark' ? "bg-purple-900/70" : "bg-purple-700/50",
+            "backdrop-blur-sm flex items-center justify-center"
+          )}
+        >
           <div className="max-w-md text-center p-6 text-white">
             <h2 className="text-3xl font-bold mb-4">Welcome back to LearnFinity</h2>
             <p className="text-xl">Continue your learning journey and unlock your potential.</p>

@@ -1,18 +1,22 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from "sonner";
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [employeeId, setEmployeeId] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
@@ -24,9 +28,20 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
+      // Store remember me preference in localStorage
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', email);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
+
       const success = await login(email, password, isAdminEmail ? employeeId : undefined);
       if (success) {
-        navigate('/dashboard');
+        toast.success('Login successful! Redirecting to dashboard...');
+        // Give users visual feedback before redirecting
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -41,7 +56,10 @@ const LoginForm = () => {
     try {
       const success = await loginWithGoogle();
       if (success) {
-        navigate('/dashboard');
+        toast.success('Google login successful! Redirecting...');
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
       }
     } catch (error) {
       console.error('Google login error:', error);
@@ -49,6 +67,19 @@ const LoginForm = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Check for remembered email on component mount
+  React.useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -65,7 +96,8 @@ const LoginForm = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:ring-purple-500 focus:border-purple-500"
+          aria-describedby="email-helper"
         />
       </div>
       
@@ -75,19 +107,30 @@ const LoginForm = () => {
             <Lock className="h-4 w-4" />
             Password
           </Label>
-          <Link to="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300">
+          <Link to="/forgot-password" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
             Forgot password?
           </Link>
         </div>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:ring-purple-500 focus:border-purple-500 pr-10"
+          />
+          <button
+            type="button"
+            onClick={togglePasswordVisibility}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
+            tabIndex={-1}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
       
       {isAdminEmail && (
@@ -99,18 +142,33 @@ const LoginForm = () => {
           <Input
             id="employeeId"
             type="text"
-            placeholder="Enter employee ID"
+            placeholder="Enter employee ID (e.g., RA2211003011971)"
             value={employeeId}
             onChange={(e) => setEmployeeId(e.target.value)}
             required={isAdminEmail}
-            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
+            className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:ring-purple-500 focus:border-purple-500"
+            aria-describedby="employeeId-helper"
           />
+          <p id="employeeId-helper" className="text-xs text-gray-400">
+            Admin users must provide their employee ID to login
+          </p>
         </div>
       )}
       
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+          id="remember-me" 
+          checked={rememberMe}
+          onCheckedChange={(checked) => setRememberMe(checked === true)}
+        />
+        <Label htmlFor="remember-me" className="text-sm text-gray-300 cursor-pointer select-none">
+          Remember me
+        </Label>
+      </div>
+
       <Button 
         type="submit" 
-        className="w-full bg-purple-600 hover:bg-purple-700"
+        className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium transition-colors"
         disabled={isLoading}
       >
         {isLoading ? 'Signing in...' : 'Sign In'}
@@ -140,13 +198,16 @@ const LoginForm = () => {
         </svg>
         Sign in with Google
       </Button>
-      
-      <p className="text-center text-sm text-gray-400">
-        Don't have an account?{' '}
-        <Link to="/signup" className="text-blue-400 hover:text-blue-300">
-          Sign up
+
+      <div className="flex justify-center space-x-4">
+        <Link to="/" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
+          Back to Home
         </Link>
-      </p>
+        <span className="text-gray-500">•</span>
+        <Link to="/signup" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
+          Create Account
+        </Link>
+      </div>
     </form>
   );
 };

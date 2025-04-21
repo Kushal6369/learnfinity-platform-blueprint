@@ -18,7 +18,14 @@ export const useAuthMethods = (
   const { logout, updateProfile } = useProfileMethods(user);
 
   const toggleTheme = async () => {
-    if (!user) return;
+    if (!user) {
+      // For non-authenticated users, just toggle the theme locally
+      const newTheme = theme === 'light' ? 'dark' : 'light';
+      setTheme(newTheme);
+      document.documentElement.classList.toggle('dark', newTheme === 'dark');
+      localStorage.setItem('theme', newTheme);
+      return;
+    }
     
     const newTheme = theme === 'light' ? 'dark' : 'light';
     
@@ -35,6 +42,7 @@ export const useAuthMethods = (
       }
       
       setTheme(newTheme);
+      document.documentElement.classList.toggle('dark', newTheme === 'dark');
       toast.success(`Theme updated to ${newTheme} mode`);
     } catch (err) {
       console.error('Error in toggleTheme:', err);
