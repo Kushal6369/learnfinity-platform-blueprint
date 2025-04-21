@@ -80,15 +80,39 @@ const AdminSettings = () => {
   const fetchAdmins = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // First, get all admin profile IDs and data
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, name, email, employee_id, created_at')
+        .select('id, name, employee_id, created_at')
         .eq('role', 'admin')
         .order('created_at', { ascending: true });
         
-      if (error) throw error;
+      if (profilesError) throw profilesError;
       
-      setAdmins(data as AdminUser[]);
+      if (profilesData && profilesData.length > 0) {
+        // Get user emails from auth.users table using the IDs from profiles
+        const userEmails = await Promise.all(
+          profilesData.map(async (profile) => {
+            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
+              profile.id
+            );
+            
+            if (userError) {
+              console.error('Error fetching user:', userError);
+              return { ...profile, email: 'Email unavailable' };
+            }
+            
+            return {
+              ...profile,
+              email: userData?.user?.email || 'Email unavailable',
+            };
+          })
+        );
+        
+        setAdmins(userEmails as AdminUser[]);
+      } else {
+        setAdmins([]);
+      }
     } catch (error) {
       console.error('Error fetching admins:', error);
       toast.error('Failed to load admin users');
