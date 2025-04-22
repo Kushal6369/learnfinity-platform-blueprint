@@ -37,8 +37,6 @@ export const useLoginMethods = () => {
         // Provide more user-friendly error messages
         if (error.message.includes('Invalid login')) {
           toast.error('Invalid email or password. Please try again.');
-        } else if (error.message.includes('Email not confirmed')) {
-          toast.error('Please confirm your email address before logging in.');
         } else if (error.message.includes('rate limit')) {
           toast.error('Too many login attempts. Please try again later.');
         } else {

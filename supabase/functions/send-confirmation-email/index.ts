@@ -9,7 +9,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface ConfirmationEmailRequest {
+interface WelcomeEmailRequest {
   name: string;
   email: string;
 }
@@ -23,22 +23,21 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email }: ConfirmationEmailRequest = await req.json();
+    const { name, email }: WelcomeEmailRequest = await req.json();
 
-    // Send to user
+    // Send welcome email to user
     const userMail = await resend.emails.send({
       from: "LearnFinity <no-reply@resend.dev>",
       to: [email],
-      subject: "Welcome to LearnFinity! Confirm your email",
+      subject: "Welcome to LearnFinity!",
       html: `
-        <h1>Hi ${name}, welcome to LearnFinity!</h1>
-        <p>Your account has been created successfully. Please confirm your email address by clicking the link we sent from Supabase as well.</p>
-        <p>Thanks for joining us!</p>
-        <p>The LearnFinity Team</p>
+        <h1>Welcome to LearnFinity, ${name}!</h1>
+        <p>Your account has been created successfully. You can now start exploring our courses and begin your learning journey.</p>
+        <p>Best regards,<br>The LearnFinity Team</p>
       `,
     });
 
-    // Send to admin
+    // Notify admin about new user
     const adminMail = await resend.emails.send({
       from: "LearnFinity <no-reply@resend.dev>",
       to: [ADMIN_EMAIL],
@@ -56,7 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
-    console.error("Error sending confirmation emails:", error);
+    console.error("Error sending welcome emails:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
