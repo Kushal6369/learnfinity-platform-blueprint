@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -92,8 +91,11 @@ const SignupForm = () => {
     try {
       const success = await signup(name, email, password);
       if (success) {
-        toast.success('Signup successful! Please check your email to confirm your account.');
-        navigate('/login');
+        toast.success('Signup successful! Redirecting to dashboard...');
+        // Redirect to dashboard after short delay for toast visibility
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1000);
       }
     } catch (error) {
       console.error('Form submission error:', error);
@@ -106,10 +108,13 @@ const SignupForm = () => {
   const handleGoogleSignup = async () => {
     setIsLoading(true);
     try {
-      await loginWithGoogle();
+      const success = await loginWithGoogle();
+      if (!success) {
+        setIsLoading(false);
+      }
+      // No need for redirection here as it's handled by the OAuth flow
     } catch (error) {
       console.error('Google signup error:', error);
-    } finally {
       setIsLoading(false);
     }
   };

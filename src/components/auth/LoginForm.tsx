@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
@@ -54,13 +53,8 @@ const LoginForm = () => {
   const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
-      const success = await loginWithGoogle();
-      if (success) {
-        toast.success('Google login successful! Redirecting...');
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1000);
-      }
+      await loginWithGoogle();
+      // No need for redirection here as it's handled by the OAuth redirect
     } catch (error) {
       console.error('Google login error:', error);
       toast.error('An error occurred during Google login');
