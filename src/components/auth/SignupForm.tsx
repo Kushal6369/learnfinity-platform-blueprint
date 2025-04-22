@@ -1,11 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LoaderCircle, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { LoaderCircle, Eye, EyeOff, AlertCircle, Check, Mail, User, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const SignupForm = () => {
   const [name, setName] = useState('');
@@ -16,10 +18,25 @@ const SignupForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | null>(null);
   const { signup, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!password) {
+      setPasswordStrength(null);
+      return;
+    }
+    
+    // Check password strength
+    if (password.length < 6) {
+      setPasswordStrength('weak');
+    } else if (password.length >= 8 && /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(password)) {
+      setPasswordStrength('strong');
+    } else {
+      setPasswordStrength('medium');
+    }
+    
     if (password || confirmPassword) {
       setPasswordError('');
     }
@@ -109,17 +126,28 @@ const SignupForm = () => {
       }
     }
   };
+  
+  const getPasswordStrengthColor = () => {
+    switch (passwordStrength) {
+      case 'weak': return 'bg-red-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'strong': return 'bg-green-500';
+      default: return 'bg-gray-300';
+    }
+  };
 
   return (
     <div className="space-y-6 w-full max-w-md animate-fade-in">
       <div className="space-y-2 text-center">
         <h1 className="text-3xl font-bold">Create an account</h1>
-        <p className="text-gray-500">Enter your information to get started</p>
+        <p className="text-gray-500 dark:text-gray-400">Enter your information to get started</p>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Full Name</Label>
+          <Label htmlFor="name" className="flex items-center gap-2">
+            <User size={16} /> Full Name
+          </Label>
           <Input
             id="name"
             type="text"
@@ -127,12 +155,15 @@ const SignupForm = () => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="focus:border-purple-600"
+            className="focus:border-purple-600 transition-all duration-200"
+            autoComplete="name"
           />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="flex items-center gap-2">
+            <Mail size={16} /> Email
+          </Label>
           <Input
             id="email"
             type="email"
@@ -140,12 +171,15 @@ const SignupForm = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="focus:border-purple-600"
+            className="focus:border-purple-600 transition-all duration-200"
+            autoComplete="email"
           />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password" className="flex items-center gap-2">
+            <Lock size={16} /> Password
+          </Label>
           <div className="relative">
             <Input
               id="password"
@@ -154,23 +188,41 @@ const SignupForm = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="focus:border-purple-600"
+              className="focus:border-purple-600 pr-10 transition-all duration-200"
+              autoComplete="new-password"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          <p className="text-xs text-gray-500">
-            Password must be at least 6 characters with uppercase, lowercase, and number
-          </p>
+          
+          {password && (
+            <div className="mt-1 space-y-1">
+              <div className="flex gap-1 h-1">
+                <div className={cn("flex-1 rounded-full transition-colors", 
+                  passwordStrength ? getPasswordStrengthColor() : "bg-gray-300")} />
+                <div className={cn("flex-1 rounded-full transition-colors", 
+                  passwordStrength === 'medium' || passwordStrength === 'strong' 
+                    ? getPasswordStrengthColor() : "bg-gray-300")} />
+                <div className={cn("flex-1 rounded-full transition-colors", 
+                  passwordStrength === 'strong' ? getPasswordStrengthColor() : "bg-gray-300")} />
+              </div>
+              <p className="text-xs text-gray-500">
+                Password must be at least 6 characters with uppercase, lowercase, and number
+              </p>
+            </div>
+          )}
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Label htmlFor="confirmPassword" className="flex items-center gap-2">
+            <Lock size={16} /> Confirm Password
+          </Label>
           <div className="relative">
             <Input
               id="confirmPassword"
@@ -179,18 +231,27 @@ const SignupForm = () => {
               value={confirmPassword}
               onChange={handleConfirmPasswordChange}
               required
-              className="focus:border-purple-600"
+              className={cn(
+                "focus:border-purple-600 pr-10 transition-all duration-200",
+                confirmPassword && password === confirmPassword ? "border-green-500" : ""
+              )}
+              autoComplete="new-password"
             />
             <button
               type="button"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
             >
               {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
+            
+            {confirmPassword && password === confirmPassword && (
+              <Check size={18} className="absolute right-10 top-1/2 -translate-y-1/2 text-green-500" />
+            )}
           </div>
           {passwordError && (
-            <p className="text-sm text-red-500 flex items-center gap-1 mt-1">
+            <p className="text-sm text-red-500 flex items-center gap-1 mt-1 animate-fade-in">
               <AlertCircle size={14} />
               {passwordError}
             </p>
@@ -199,7 +260,7 @@ const SignupForm = () => {
         
         <Button
           type="submit"
-          className="w-full bg-purple-600 hover:bg-purple-700"
+          className="w-full bg-purple-600 hover:bg-purple-700 transition-all duration-200"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -214,7 +275,7 @@ const SignupForm = () => {
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t"></span>
+            <span className="w-full border-t dark:border-gray-700"></span>
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-white dark:bg-gray-900 px-2 text-gray-500">Or continue with</span>
@@ -224,7 +285,7 @@ const SignupForm = () => {
         <Button 
           type="button" 
           variant="outline" 
-          className="w-full"
+          className="w-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
           onClick={handleGoogleSignup}
           disabled={isLoading}
         >
@@ -241,7 +302,7 @@ const SignupForm = () => {
       <div className="text-center text-sm">
         <p>
           Already have an account?{' '}
-          <Link to="/login" className="text-blue-600 hover:text-blue-800 font-medium">
+          <Link to="/login" className="text-purple-600 dark:text-purple-400 hover:underline font-medium transition-all">
             Sign in
           </Link>
         </p>
