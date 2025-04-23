@@ -1,8 +1,10 @@
+
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { AuthContextType } from '@/types/auth';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useAuthMethods } from '@/hooks/useAuthMethods';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
