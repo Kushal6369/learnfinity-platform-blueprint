@@ -84,10 +84,11 @@ export const useLoginMethods = () => {
 
   const loginWithGoogle = async () => {
     try {
+      const currentUrl = window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/dashboard', // Ensure redirect is to the dashboard
+          redirectTo: `${currentUrl}/dashboard`, // Ensure redirect is to the dashboard with correct origin
           queryParams: {
             prompt: 'select_account', // Forces Google to show the account selection screen
           }

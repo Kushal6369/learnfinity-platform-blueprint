@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -85,5 +86,26 @@
   
   .sidebar-icon {
     @apply w-5 h-5 mr-3 transition-transform duration-300;
+  }
+  
+  /* Custom menu styling */
+  .menu {
+    @apply transition-all duration-300 ease-in-out;
+  }
+  
+  .menu:hover {
+    width: 260px;
+  }
+  
+  .menu:hover li span:nth-child(2) {
+    display: block;
+  }
+  
+  .menu-content li {
+    @apply list-none rounded-r-full transition-all duration-300 mb-5 pl-5;
+  }
+  
+  .menu-content li:hover {
+    @apply bg-gray-800;
   }
 }

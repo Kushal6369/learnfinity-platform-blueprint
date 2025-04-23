@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
@@ -40,41 +40,74 @@ const SidebarLink = ({ to, icon: Icon, children, className }: SidebarLinkProps) 
 const Sidebar = () => {
   const { isAdmin, logout } = useAuth();
   const isAdminPath = useLocation().pathname.startsWith('/admin');
+  const [isExpanded, setIsExpanded] = useState(true);
   
   return (
-    <div className="w-64 min-h-screen bg-gray-900 text-white transition-all duration-300 group hover:shadow-xl relative">
+    <div 
+      className={cn(
+        "menu min-h-screen bg-gray-900 text-white transition-all duration-300 shadow-xl relative",
+        isExpanded ? "w-64" : "w-20",
+      )}
+      onMouseEnter={() => setIsExpanded(true)}
+      onMouseLeave={() => setIsExpanded(false)}
+    >
       <div className="sticky top-0 py-6">
-        <h2 className="text-lg font-semibold px-6 mb-8">
-          {isAdminPath ? 'Admin Panel' : 'LearnFinity'}
+        <h2 className={cn(
+          "text-lg font-semibold px-6 mb-8 transition-all duration-300",
+          !isExpanded && "text-center px-0"
+        )}>
+          {isExpanded ? (isAdminPath ? 'Admin Panel' : 'LearnFinity') : 'LF'}
         </h2>
         
-        <nav className="space-y-1 px-2">
+        <nav className="menu-content space-y-1 px-2">
           {isAdminPath ? (
             <>
-              <SidebarLink to="/admin/dashboard" icon={BarChart}>Dashboard</SidebarLink>
-              <SidebarLink to="/admin/courses" icon={BookOpen}>Courses</SidebarLink>
-              <SidebarLink to="/admin/course-management" icon={PlusSquare}>Course Management</SidebarLink>
-              <SidebarLink to="/admin/users" icon={Users}>Users</SidebarLink>
-              <SidebarLink to="/admin/settings" icon={Settings}>Settings</SidebarLink>
-              <SidebarLink to="/admin/reports" icon={Database}>Reports</SidebarLink>
+              <SidebarLink to="/admin/dashboard" icon={BarChart}>
+                {isExpanded ? "Dashboard" : ""}
+              </SidebarLink>
+              <SidebarLink to="/admin/courses" icon={BookOpen}>
+                {isExpanded ? "Courses" : ""}
+              </SidebarLink>
+              <SidebarLink to="/admin/course-management" icon={PlusSquare}>
+                {isExpanded ? "Course Management" : ""}
+              </SidebarLink>
+              <SidebarLink to="/admin/users" icon={Users}>
+                {isExpanded ? "Users" : ""}
+              </SidebarLink>
+              <SidebarLink to="/admin/settings" icon={Settings}>
+                {isExpanded ? "Settings" : ""}
+              </SidebarLink>
+              <SidebarLink to="/admin/reports" icon={Database}>
+                {isExpanded ? "Reports" : ""}
+              </SidebarLink>
               <div className="pt-4 mt-4 border-t border-gray-700">
                 <SidebarLink to="/dashboard" icon={LayoutDashboard} className="text-blue-400 hover:text-blue-300">
-                  Switch to Student View
+                  {isExpanded ? "Switch to Student View" : ""}
                 </SidebarLink>
               </div>
             </>
           ) : (
             <>
-              <SidebarLink to="/dashboard" icon={LayoutDashboard}>Dashboard</SidebarLink>
-              <SidebarLink to="/courses" icon={BookOpen}>Courses</SidebarLink>
-              <SidebarLink to="/assignments" icon={CheckSquare}>Assignments</SidebarLink>
-              <SidebarLink to="/certificates" icon={Award}>Certificates</SidebarLink>
-              <SidebarLink to="/settings" icon={Settings}>Settings</SidebarLink>
+              <SidebarLink to="/dashboard" icon={LayoutDashboard}>
+                {isExpanded ? "Dashboard" : ""}
+              </SidebarLink>
+              <SidebarLink to="/courses" icon={BookOpen}>
+                {isExpanded ? "Courses" : ""}
+              </SidebarLink>
+              <SidebarLink to="/assignments" icon={CheckSquare}>
+                {isExpanded ? "Assignments" : ""}
+              </SidebarLink>
+              <SidebarLink to="/certificates" icon={Award}>
+                {isExpanded ? "Certificates" : ""}
+              </SidebarLink>
+              <SidebarLink to="/settings" icon={Settings}>
+                {isExpanded ? "Settings" : ""}
+              </SidebarLink>
               
               {isAdmin && (
                 <div className="pt-4 mt-4 border-t border-gray-700">
                   <SidebarLink to="/admin/dashboard" icon={BarChart} className="text-blue-400 hover:text-blue-300">
-                    Switch to Admin View
+                    {isExpanded ? "Switch to Admin View" : ""}
                   </SidebarLink>
                 </div>
               )}
@@ -87,8 +120,8 @@ const Sidebar = () => {
               className="flex items-center w-full px-4 py-3 text-sm font-medium text-red-400 rounded-r-full transition-all duration-300 hover:bg-red-500/10 hover:text-red-300 group"
             >
               <LogOut className="w-5 h-5 mr-3 transition-transform duration-300 group-hover:scale-110" />
-              <span className="opacity-100 transition-opacity duration-300">
-                Logout
+              <span className={cn("transition-opacity duration-300", isExpanded ? "opacity-100" : "opacity-0")}>
+                {isExpanded ? "Logout" : ""}
               </span>
             </button>
           </div>

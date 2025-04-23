@@ -1,4 +1,5 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { AuthContextType } from '@/types/auth';
 import { useAuthState } from '@/hooks/useAuthState';
 import { useAuthMethods } from '@/hooks/useAuthMethods';
@@ -31,17 +32,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = user !== null;
   const isAdmin = user?.role === 'admin';
 
-  // Ensure Google redirect is handled properly
-  React.useEffect(() => {
+  // Handle Google redirect properly
+  useEffect(() => {
     const handleAuthStateChange = async () => {
       const { data } = await supabase.auth.getSession();
       // If there's a hash in the URL, it might be a redirect from OAuth
       if (window.location.hash && !data.session) {
         console.log("Processing auth redirect");
+        // The hash will be processed by Supabase's onAuthStateChange handler
       }
     };
     
     handleAuthStateChange();
+    
+    // Check for auth redirects
+    const handleHashChange = () => {
+      if (window.location.hash.includes('access_token') || window.location.hash.includes('error')) {
+        console.log("Detected auth redirect in URL hash");
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange();
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
   }, []);
 
   return (
