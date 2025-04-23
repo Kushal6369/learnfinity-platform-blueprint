@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { AuthContextType } from '@/types/auth';
 import { useAuthState } from '@/hooks/useAuthState';
@@ -32,31 +31,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuthenticated = user !== null;
   const isAdmin = user?.role === 'admin';
 
-  // Handle Google redirect properly
   useEffect(() => {
     const handleAuthStateChange = async () => {
       const { data } = await supabase.auth.getSession();
-      // If there's a hash in the URL, it might be a redirect from OAuth
       if (window.location.hash && !data.session) {
         console.log("Processing auth redirect");
-        // The hash will be processed by Supabase's onAuthStateChange handler
       }
     };
     
     handleAuthStateChange();
     
-    // Check for auth redirects
-    const handleHashChange = () => {
-      if (window.location.hash.includes('access_token') || window.location.hash.includes('error')) {
-        console.log("Detected auth redirect in URL hash");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        toast.success('Welcome back!');
+      } else if (event === 'SIGNED_OUT') {
+        toast.success('Logged out successfully');
       }
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    handleHashChange();
+    });
     
     return () => {
-      window.removeEventListener('hashchange', handleHashChange);
+      subscription.unsubscribe();
     };
   }, []);
 

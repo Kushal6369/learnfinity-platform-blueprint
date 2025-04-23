@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -71,41 +70,66 @@
   * {
     @apply border-border;
   }
+  
   body {
-    @apply bg-background text-foreground;
-  }
-  .glass {
-    @apply bg-background/80 backdrop-blur-lg border border-border/50;
+    @apply bg-background text-foreground antialiased;
   }
 }
 
 @layer components {
+  .glass {
+    @apply bg-background/80 backdrop-blur-lg border border-border/50;
+  }
+
   .sidebar-link {
-    @apply flex items-center px-4 py-3 text-sm font-medium rounded-r-full transition-all duration-300;
+    @apply flex items-center px-4 py-3 text-sm font-medium transition-all duration-300 hover:bg-gray-800 hover:text-white;
   }
   
   .sidebar-icon {
-    @apply w-5 h-5 mr-3 transition-transform duration-300;
+    @apply w-5 h-5 mr-3 transition-transform duration-300 group-hover:scale-110;
   }
   
-  /* Custom menu styling */
   .menu {
-    @apply transition-all duration-300 ease-in-out;
+    @apply h-screen sticky top-0 transition-all duration-300 ease-in-out bg-gray-900;
+    width: 70px;
   }
   
   .menu:hover {
     width: 260px;
   }
   
-  .menu:hover li span:nth-child(2) {
-    display: block;
+  .menu:hover .menu-label {
+    @apply opacity-100 delay-100;
+  }
+  
+  .menu-label {
+    @apply opacity-0 transition-opacity duration-200;
   }
   
   .menu-content li {
-    @apply list-none rounded-r-full transition-all duration-300 mb-5 pl-5;
+    @apply list-none rounded-r-full transition-all duration-300 mb-2 px-4 py-2;
   }
   
   .menu-content li:hover {
     @apply bg-gray-800;
+  }
+  
+  .menu-content li.active {
+    @apply bg-purple-600 text-white;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
