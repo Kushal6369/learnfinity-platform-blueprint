@@ -12,6 +12,8 @@ const corsHeaders = {
 interface WelcomeEmailRequest {
   name: string;
   email: string;
+  confirmationToken: string;
+  confirmationUrl: string;
 }
 
 const ADMIN_EMAIL = "saikushalulli@gmail.com";
@@ -23,16 +25,18 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { name, email }: WelcomeEmailRequest = await req.json();
+    const { name, email, confirmationToken, confirmationUrl }: WelcomeEmailRequest = await req.json();
 
-    // Send welcome email to user
+    // Send welcome email to user with confirmation link
     const userMail = await resend.emails.send({
       from: "LearnFinity <no-reply@resend.dev>",
       to: [email],
-      subject: "Welcome to LearnFinity!",
+      subject: "Welcome to LearnFinity - Please Confirm Your Email",
       html: `
         <h1>Welcome to LearnFinity, ${name}!</h1>
-        <p>Your account has been created successfully. You can now start exploring our courses and begin your learning journey.</p>
+        <p>Your account has been created successfully. Please click the link below to confirm your email address:</p>
+        <p><a href="${confirmationUrl}?confirmation_token=${confirmationToken}">Confirm your email</a></p>
+        <p>This link will expire in 24 hours.</p>
         <p>Best regards,<br>The LearnFinity Team</p>
       `,
     });
@@ -41,11 +45,12 @@ const handler = async (req: Request): Promise<Response> => {
     const adminMail = await resend.emails.send({
       from: "LearnFinity <no-reply@resend.dev>",
       to: [ADMIN_EMAIL],
-      subject: "A new user signed up to LearnFinity",
+      subject: "New User Registration at LearnFinity",
       html: `
-        <h2>New User Signup Notification</h2>
+        <h2>New User Registration Notification</h2>
         <p>Name: ${name}</p>
         <p>Email: ${email}</p>
+        <p>Status: Pending Email Confirmation</p>
       `,
     });
 
