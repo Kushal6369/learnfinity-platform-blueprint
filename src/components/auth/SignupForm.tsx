@@ -1,12 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LoaderCircle, Eye, EyeOff, AlertCircle, Check, Mail, User, Lock } from 'lucide-react';
+import { LoaderCircle, Mail, User } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import PasswordInput from './PasswordInput';
+import GoogleSignupButton from './GoogleSignupButton';
 
 const SignupForm = () => {
   const [name, setName] = useState('');
@@ -27,7 +29,6 @@ const SignupForm = () => {
       return;
     }
     
-    // Check password strength
     if (password.length < 6) {
       setPasswordStrength('weak');
     } else if (password.length >= 8 && /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/.test(password)) {
@@ -91,11 +92,8 @@ const SignupForm = () => {
     try {
       const success = await signup(name, email, password);
       if (success) {
-        toast.success('Signup successful! Redirecting to dashboard...');
-        // Redirect to dashboard after short delay for toast visibility
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 1000);
+        toast.success('Signup successful! Please check your email to confirm your account.');
+        navigate('/dashboard');
       }
     } catch (error) {
       console.error('Form submission error:', error);
@@ -108,36 +106,10 @@ const SignupForm = () => {
   const handleGoogleSignup = async () => {
     setIsLoading(true);
     try {
-      const success = await loginWithGoogle();
-      if (!success) {
-        setIsLoading(false);
-      }
-      // No need for redirection here as it's handled by the OAuth flow
+      await loginWithGoogle();
     } catch (error) {
       console.error('Google signup error:', error);
       setIsLoading(false);
-    }
-  };
-
-  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setConfirmPassword(value);
-    
-    if (password && value) {
-      if (password !== value) {
-        setPasswordError('Passwords do not match');
-      } else {
-        setPasswordError('');
-      }
-    }
-  };
-  
-  const getPasswordStrengthColor = () => {
-    switch (passwordStrength) {
-      case 'weak': return 'bg-red-500';
-      case 'medium': return 'bg-yellow-500';
-      case 'strong': return 'bg-green-500';
-      default: return 'bg-gray-300';
     }
   };
 
@@ -181,87 +153,27 @@ const SignupForm = () => {
           />
         </div>
         
-        <div className="space-y-2">
-          <Label htmlFor="password" className="flex items-center gap-2">
-            <Lock size={16} /> Password
-          </Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="focus:border-purple-600 pr-10 transition-all duration-200"
-              autoComplete="new-password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-          
-          {password && (
-            <div className="mt-1 space-y-1">
-              <div className="flex gap-1 h-1">
-                <div className={cn("flex-1 rounded-full transition-colors", 
-                  passwordStrength ? getPasswordStrengthColor() : "bg-gray-300")} />
-                <div className={cn("flex-1 rounded-full transition-colors", 
-                  passwordStrength === 'medium' || passwordStrength === 'strong' 
-                    ? getPasswordStrengthColor() : "bg-gray-300")} />
-                <div className={cn("flex-1 rounded-full transition-colors", 
-                  passwordStrength === 'strong' ? getPasswordStrengthColor() : "bg-gray-300")} />
-              </div>
-              <p className="text-xs text-gray-500">
-                Password must be at least 6 characters with uppercase, lowercase, and number
-              </p>
-            </div>
-          )}
-        </div>
+        <PasswordInput
+          id="password"
+          password={password}
+          setPassword={setPassword}
+          label="Password"
+          showPassword={showPassword}
+          toggleShowPassword={() => setShowPassword(!showPassword)}
+          passwordStrength={passwordStrength}
+        />
         
-        <div className="space-y-2">
-          <Label htmlFor="confirmPassword" className="flex items-center gap-2">
-            <Lock size={16} /> Confirm Password
-          </Label>
-          <div className="relative">
-            <Input
-              id="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChange={handleConfirmPasswordChange}
-              required
-              className={cn(
-                "focus:border-purple-600 pr-10 transition-all duration-200",
-                confirmPassword && password === confirmPassword ? "border-green-500" : ""
-              )}
-              autoComplete="new-password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-              aria-label={showConfirmPassword ? "Hide password" : "Show password"}
-            >
-              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-            
-            {confirmPassword && password === confirmPassword && (
-              <Check size={18} className="absolute right-10 top-1/2 -translate-y-1/2 text-green-500" />
-            )}
-          </div>
-          {passwordError && (
-            <p className="text-sm text-red-500 flex items-center gap-1 mt-1 animate-fade-in">
-              <AlertCircle size={14} />
-              {passwordError}
-            </p>
-          )}
-        </div>
+        <PasswordInput
+          id="confirmPassword"
+          password={confirmPassword}
+          setPassword={setConfirmPassword}
+          label="Confirm Password"
+          showPassword={showConfirmPassword}
+          toggleShowPassword={() => setShowConfirmPassword(!showConfirmPassword)}
+          error={passwordError}
+          isConfirm={true}
+          confirmPassword={password}
+        />
         
         <Button
           type="submit"
@@ -287,21 +199,7 @@ const SignupForm = () => {
           </div>
         </div>
 
-        <Button 
-          type="button" 
-          variant="outline" 
-          className="w-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
-          onClick={handleGoogleSignup}
-          disabled={isLoading}
-        >
-          <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-            <path fill="#FFC107" d="M43.6,20H24v8h11.3c-1.1,5.4-5.7,8-11.3,8c-6.8,0-12-5.2-12-12s5.2-12,12-12c3.1,0,5.9,1.1,8,2.9l6.1-6.1C33.9,3.4,29.1,2,24,2C12.9,2,4,11,4,22s8.9,20,20,20s20-9,20-20c0-0.7,0-1.3-0.1-2H43.6z"/>
-            <path fill="#FF3D00" d="M6.3,13.7L12.9,18.5c1.8-4.4,5.9-7.5,11.1-7.5c3.1,0,5.9,1.1,8,2.9l6.1-6.1C33.9,3.4,29.1,2,24,2C16.3,2,9.7,6.7,6.3,13.7z"/>
-            <path fill="#4CAF50" d="M24,42c5,0,9.6-1.3,13.5-3.7l-6.6-5.5c-1.8,1.2-4,1.9-6.9,1.9c-5.6,0-10.4-3.6-12.1-9l-6.8,5.3C8.4,37.6,15.6,42,24,42z"/>
-            <path fill="#1976D2" d="M43.6,20H24v8h11.3c-0.5,2.4-1.7,4.5-3.5,6l6.6,5.5C42.4,35.2,44,29,44,22C44,21.3,43.9,20.7,43.6,20z"/>
-          </svg>
-          Sign up with Google
-        </Button>
+        <GoogleSignupButton onClick={handleGoogleSignup} isLoading={isLoading} />
       </form>
       
       <div className="text-center text-sm">

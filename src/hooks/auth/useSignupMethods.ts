@@ -3,26 +3,42 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useSignupMethods = () => {
-  const sendWelcomeEmail = async (name: string, email: string) => {
+  const sendConfirmationEmail = async (name: string, email: string, confirmationToken: string) => {
     try {
+      const confirmationUrl = `${window.location.origin}/confirm-email`;
+      
       const { data, error } = await supabase.functions.invoke("send-confirmation-email", {
-        body: { name, email }
+        body: { 
+          name, 
+          email,
+          confirmationToken,
+          confirmationUrl
+        }
       });
+      
       if (error) {
-        console.error("Failed to send welcome email:", error);
+        console.error("Failed to send confirmation email:", error);
+        toast.error("Failed to send confirmation email. Please try again.");
       }
     } catch (err) {
-      console.error("Error sending welcome email:", err);
+      console.error("Error sending confirmation email:", err);
+      toast.error("An error occurred while sending the confirmation email");
     }
   };
 
   const signup = async (name: string, email: string, password: string) => {
     try {
+      // Generate a confirmation token
+      const confirmationToken = crypto.randomUUID();
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { name }
+          data: { 
+            name,
+            confirmation_token: confirmationToken // Store the token in user metadata
+          }
         }
       });
 
@@ -47,26 +63,16 @@ export const useSignupMethods = () => {
         if (profileError) {
           console.error('Profile creation error:', profileError);
           toast.error('Account created but profile setup failed');
-          // Proceed anyway
         }
-        // Send a welcome email to user and admin
-        await sendWelcomeEmail(name, email);
         
-        // Since we're not requiring email confirmation, sign in the user
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
+        // Send confirmation email with token
+        await sendConfirmationEmail(name, email, confirmationToken);
         
-        if (signInError) {
-          console.error('Auto sign-in error:', signInError);
-          toast.error('Account created but automatic login failed. Please log in manually.');
-          return false;
-        }
+        toast.success('Account created! Please check your email to confirm your account.');
+        return true;
       }
 
-      toast.success('Account created successfully! Redirecting to dashboard...');
-      return true;
+      return false;
     } catch (error) {
       console.error('Signup error:', error);
       toast.error('An error occurred while creating your account');
