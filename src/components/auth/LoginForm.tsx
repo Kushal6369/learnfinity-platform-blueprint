@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
@@ -7,8 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from "sonner";
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LoaderCircle } from 'lucide-react';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -27,7 +27,6 @@ const LoginForm = () => {
     setIsLoading(true);
 
     try {
-      // Store remember me preference in localStorage
       if (rememberMe) {
         localStorage.setItem('rememberedEmail', email);
       } else {
@@ -37,14 +36,13 @@ const LoginForm = () => {
       const success = await login(email, password, isAdminEmail ? employeeId : undefined);
       if (success) {
         toast.success('Login successful! Redirecting to dashboard...');
-        // Give users visual feedback before redirecting
         setTimeout(() => {
           navigate('/dashboard');
         }, 1000);
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('An error occurred during login');
+      toast.error('Invalid email or password');
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +52,6 @@ const LoginForm = () => {
     setIsLoading(true);
     try {
       await loginWithGoogle();
-      // No need for redirection here as it's handled by the OAuth redirect
     } catch (error) {
       console.error('Google login error:', error);
       toast.error('An error occurred during Google login');
@@ -63,7 +60,6 @@ const LoginForm = () => {
     }
   };
 
-  // Check for remembered email on component mount
   React.useEffect(() => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
@@ -71,10 +67,6 @@ const LoginForm = () => {
       setRememberMe(true);
     }
   }, []);
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -91,10 +83,10 @@ const LoginForm = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
           className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:ring-purple-500 focus:border-purple-500"
-          aria-describedby="email-helper"
+          disabled={isLoading}
         />
       </div>
-      
+
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="password" className="flex items-center gap-2">
@@ -114,19 +106,19 @@ const LoginForm = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:ring-purple-500 focus:border-purple-500 pr-10"
+            disabled={isLoading}
           />
           <button
             type="button"
-            onClick={togglePasswordVisibility}
+            onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-300"
             tabIndex={-1}
-            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
       </div>
-      
+
       {isAdminEmail && (
         <div className="space-y-2">
           <Label htmlFor="employeeId" className="flex items-center gap-2">
@@ -136,24 +128,25 @@ const LoginForm = () => {
           <Input
             id="employeeId"
             type="text"
-            placeholder="Enter employee ID (e.g., RA2211003011971)"
+            placeholder="Enter employee ID"
             value={employeeId}
             onChange={(e) => setEmployeeId(e.target.value)}
             required={isAdminEmail}
             className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:ring-purple-500 focus:border-purple-500"
-            aria-describedby="employeeId-helper"
+            disabled={isLoading}
           />
-          <p id="employeeId-helper" className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400">
             Admin users must provide their employee ID to login
           </p>
         </div>
       )}
-      
+
       <div className="flex items-center space-x-2">
         <Checkbox 
           id="remember-me" 
           checked={rememberMe}
           onCheckedChange={(checked) => setRememberMe(checked === true)}
+          disabled={isLoading}
         />
         <Label htmlFor="remember-me" className="text-sm text-gray-300 cursor-pointer select-none">
           Remember me
@@ -165,7 +158,14 @@ const LoginForm = () => {
         className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium transition-colors"
         disabled={isLoading}
       >
-        {isLoading ? 'Signing in...' : 'Sign In'}
+        {isLoading ? (
+          <span className="flex items-center justify-center">
+            <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+            Signing in...
+          </span>
+        ) : (
+          'Sign In'
+        )}
       </Button>
 
       <div className="relative">
@@ -176,7 +176,7 @@ const LoginForm = () => {
           <span className="bg-gray-900 px-2 text-gray-400">Or continue with</span>
         </div>
       </div>
-      
+
       <Button 
         type="button" 
         variant="outline" 
