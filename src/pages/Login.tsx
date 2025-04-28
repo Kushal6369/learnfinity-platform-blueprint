@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate, Link } from 'react-router-dom';
 import { GraduationCap, Moon, Sun, Laptop } from 'lucide-react';
@@ -20,7 +19,6 @@ const Login = () => {
   const [localTheme, setLocalTheme] = useState<'light' | 'dark'>(userTheme || 'dark');
   const [isLoading, setIsLoading] = useState(true);
   
-  // Handle theme toggling for non-authenticated users
   const handleThemeChange = (theme: 'light' | 'dark' | 'system') => {
     if (theme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -33,7 +31,6 @@ const Login = () => {
   };
 
   useEffect(() => {
-    // Short timeout to prevent flash of content
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 300);
@@ -41,17 +38,35 @@ const Login = () => {
     return () => clearTimeout(timer);
   }, []);
   
-  // Redirect if already logged in
   if (isAuthenticated) {
     return <Navigate to="/dashboard" />;
   }
+
+  const DemoAccountInfo = () => (
+    <div className={cn(
+      "mt-6 p-4 rounded-lg",
+      localTheme === 'dark' ? "bg-gray-800/50" : "bg-gray-100"
+    )}>
+      <h3 className="text-sm font-medium mb-2">Demo Accounts</h3>
+      {activeTab === 'user' ? (
+        <div className="space-y-1 text-sm">
+          <p>Email: <span className="font-mono">demo.user@learnfinity.com</span></p>
+          <p>Password: <span className="font-mono">demo123</span></p>
+        </div>
+      ) : (
+        <div className="space-y-1 text-sm">
+          <p>Email: <span className="font-mono">demo.admin@learnfinity.com</span></p>
+          <p>Password: <span className="font-mono">admin123</span></p>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className={cn(
       "min-h-screen flex flex-col md:flex-row transition-colors duration-300",
       localTheme === 'dark' ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-900"
     )}>
-      {/* Left side - Form */}
       <div className="flex-1 flex items-center justify-center p-6 md:p-10">
         <div className="w-full max-w-md">
           <div className="flex justify-between items-center mb-8">
@@ -108,7 +123,6 @@ const Login = () => {
             )}>Sign in to your account to continue</p>
           </div>
           
-          {/* Login Type Tabs */}
           <div className={cn(
             "flex mb-6 rounded-lg p-1",
             localTheme === 'dark' ? "bg-gray-800" : "bg-gray-200"
@@ -147,21 +161,21 @@ const Login = () => {
             </button>
           </div>
           
-          {/* Show a skeleton while loading */}
           {isLoading ? (
             <div className="space-y-4">
               <div className="h-10 bg-gray-700 rounded animate-pulse"></div>
               <div className="h-10 bg-gray-700 rounded animate-pulse"></div>
               <div className="h-10 bg-gray-700 rounded animate-pulse"></div>
-              <div className="h-10 bg-gray-700 rounded animate-pulse"></div>
             </div>
           ) : (
-            activeTab === 'user' ? <LoginForm /> : <AdminLoginForm />
+            <>
+              {activeTab === 'user' ? <LoginForm /> : <AdminLoginForm />}
+              <DemoAccountInfo />
+            </>
           )}
         </div>
       </div>
       
-      {/* Right side - Image with better fallback */}
       <div className="hidden md:block md:flex-1 bg-cover bg-center relative">
         <div 
           className={cn(
