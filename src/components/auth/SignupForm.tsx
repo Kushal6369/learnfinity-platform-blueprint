@@ -8,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import { LoaderCircle, Mail, User } from 'lucide-react';
 import { toast } from 'sonner';
 import PasswordInput from './PasswordInput';
-import GoogleSignupButton from './GoogleSignupButton';
 
 const SignupForm = () => {
   const [name, setName] = useState('');
@@ -20,7 +19,7 @@ const SignupForm = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | null>(null);
-  const { signup, loginWithGoogle } = useAuth();
+  const { signup } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -103,16 +102,6 @@ const SignupForm = () => {
     }
   };
 
-  const handleGoogleSignup = async () => {
-    setIsLoading(true);
-    try {
-      await loginWithGoogle();
-    } catch (error) {
-      console.error('Google signup error:', error);
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="space-y-6 w-full max-w-md animate-fade-in">
       <div className="space-y-2 text-center">
@@ -189,17 +178,6 @@ const SignupForm = () => {
             'Sign Up'
           )}
         </Button>
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t dark:border-gray-700"></span>
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white dark:bg-gray-900 px-2 text-gray-500">Or continue with</span>
-          </div>
-        </div>
-
-        <GoogleSignupButton onClick={handleGoogleSignup} isLoading={isLoading} />
       </form>
       
       <div className="text-center text-sm">

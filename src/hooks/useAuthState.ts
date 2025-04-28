@@ -52,8 +52,7 @@ export const useAuthState = () => {
                   email: session.user.email!,
                   role: newProfile.role as 'user' | 'admin',
                   avatar: newProfile.avatar_url,
-                  theme: newProfile.theme as Theme,
-                  employeeId: newProfile.employee_id
+                  theme: newProfile.theme as Theme
                 });
                 setTheme(newProfile.theme as Theme);
                 document.documentElement.classList.toggle('dark', newProfile.theme === 'dark');
@@ -74,8 +73,7 @@ export const useAuthState = () => {
             email: session.user.email!,
             role: profile.role as 'user' | 'admin',
             avatar: profile.avatar_url,
-            theme: profile.theme as Theme,
-            employeeId: profile.employee_id
+            theme: profile.theme as Theme
           });
           setTheme(profile.theme as Theme);
           document.documentElement.classList.toggle('dark', profile.theme === 'dark');
@@ -118,8 +116,7 @@ export const useAuthState = () => {
                 email: session.user.email!,
                 role: profile.role as 'user' | 'admin',
                 avatar: profile.avatar_url,
-                theme: profile.theme as Theme,
-                employeeId: profile.employee_id
+                theme: profile.theme as Theme
               });
               setTheme(profile.theme as Theme);
               document.documentElement.classList.toggle('dark', profile.theme === 'dark');

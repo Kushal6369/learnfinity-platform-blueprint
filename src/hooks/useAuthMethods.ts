@@ -12,7 +12,7 @@ export const useAuthMethods = (
   theme: Theme,
   setTheme: (theme: Theme) => void
 ) => {
-  const { login, loginWithGoogle } = useLoginMethods();
+  const { login } = useLoginMethods();
   const { signup } = useSignupMethods();
   const { requestPasswordReset, verifyOTP, resetPassword } = usePasswordMethods();
   const { logout, updateProfile, updateTheme } = useProfileMethods(user);
@@ -54,7 +54,6 @@ export const useAuthMethods = (
 
   return {
     login,
-    loginWithGoogle,
     signup,
     logout,
     toggleTheme,

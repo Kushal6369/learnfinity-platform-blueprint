@@ -19,8 +19,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { user, theme, setTheme } = useAuthState();
   const { 
-    login, 
-    loginWithGoogle, 
+    login,
     signup, 
     logout, 
     toggleTheme,
@@ -62,8 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isAuthenticated, 
       isAdmin, 
       theme,
-      login, 
-      loginWithGoogle,
+      login,
       signup, 
       logout,
       toggleTheme,
