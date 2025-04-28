@@ -8,7 +8,6 @@ export type User = {
   role: 'user' | 'admin';
   avatar?: string;
   theme: Theme;
-  employeeId?: string;
 };
 
 export type AuthContextType = {
@@ -16,8 +15,7 @@ export type AuthContextType = {
   isAuthenticated: boolean;
   isAdmin: boolean;
   theme: Theme;
-  login: (email: string, password: string, employeeId?: string) => Promise<boolean>;
-  loginWithGoogle: () => Promise<boolean>;
+  login: (email: string, password: string) => Promise<boolean>;
   signup: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   toggleTheme: () => Promise<void>;
