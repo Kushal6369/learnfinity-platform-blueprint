@@ -18,6 +18,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminSettings from "./pages/admin/AdminSettings";
 import CourseManagement from "./pages/admin/CourseManagement";
 import AddCourse from "./pages/admin/AddCourse";
+import EditCourse from "./pages/admin/EditCourse";
 import NotFound from "./pages/NotFound";
 import Chatbot from "./pages/Chatbot";
 import ChatbotWidget from "./components/chat/ChatbotWidget";
@@ -25,7 +26,6 @@ import Layout from "./components/layout/Layout";
 
 const queryClient = new QueryClient();
 
-// Component to conditionally render ChatbotWidget
 const ChatbotWrapper = () => {
   const location = useLocation();
   const hideChatbotPaths = ['/login', '/signup'];
