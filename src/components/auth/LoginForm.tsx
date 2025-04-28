@@ -39,10 +39,21 @@ const LoginForm = () => {
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast.error('Invalid email or password');
+      toast.error('An error occurred during login');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Fill in demo credentials
+  const fillDemoUserCredentials = () => {
+    setEmail('demo.user@learnfinity.com');
+    setPassword('demo123');
+  };
+
+  const fillDemoAdminCredentials = () => {
+    setEmail('demo.admin@learnfinity.com');
+    setPassword('admin123');
   };
 
   React.useEffect(() => {
@@ -130,6 +141,27 @@ const LoginForm = () => {
           'Sign In'
         )}
       </Button>
+
+      <div className="grid grid-cols-2 gap-3 mt-4">
+        <Button 
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={fillDemoUserCredentials}
+          className="text-xs"
+        >
+          Use Demo User
+        </Button>
+        <Button 
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={fillDemoAdminCredentials}
+          className="text-xs"
+        >
+          Use Demo Admin
+        </Button>
+      </div>
 
       <div className="flex justify-center space-x-4">
         <Link to="/" className="text-sm text-purple-400 hover:text-purple-300 transition-colors">
