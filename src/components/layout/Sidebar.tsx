@@ -50,15 +50,17 @@ const Sidebar = () => {
             </Button>
           </Link>
 
-          <Link to="/my-courses">
-            <Button 
-              variant={isActiveRoute('/my-courses') ? "secondary" : "ghost"} 
-              className="w-full justify-start"
-            >
-              <BookOpen className="mr-2 h-4 w-4" />
-              My Courses
-            </Button>
-          </Link>
+          {!isAdmin && (
+            <Link to="/my-courses">
+              <Button 
+                variant={isActiveRoute('/my-courses') ? "secondary" : "ghost"} 
+                className="w-full justify-start"
+              >
+                <BookOpen className="mr-2 h-4 w-4" />
+                My Courses
+              </Button>
+            </Link>
+          )}
 
           <Link to="/chatbot">
             <Button 

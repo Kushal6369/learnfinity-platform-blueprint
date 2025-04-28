@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -45,7 +44,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
-// Mock courses data
 const mockCourses = [
   {
     id: '1',
@@ -222,13 +220,12 @@ const CourseForm = ({ onClose }: CourseFormProps) => {
 };
 
 const CourseManagement = () => {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, navigate } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Redirect if not authenticated or not admin
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
@@ -237,7 +234,6 @@ const CourseManagement = () => {
     return <Navigate to="/dashboard" />;
   }
   
-  // Filter courses based on search query and filters
   const filteredCourses = mockCourses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           course.instructor.toLowerCase().includes(searchQuery.toLowerCase());
@@ -264,7 +260,6 @@ const CourseManagement = () => {
         
         <main className="flex-1 p-6 overflow-y-auto">
           <div className="max-w-7xl mx-auto space-y-6">
-            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
                 <h1 className="text-2xl sm:text-3xl font-semibold">Course Management</h1>
@@ -290,7 +285,6 @@ const CourseManagement = () => {
               </Dialog>
             </div>
             
-            {/* Filters */}
             <Card>
               <CardContent className="p-4">
                 <div className="flex flex-col md:flex-row gap-4">
@@ -343,7 +337,6 @@ const CourseManagement = () => {
               </CardContent>
             </Card>
             
-            {/* Courses table */}
             <Card>
               <CardHeader className="pb-0">
                 <CardTitle>Courses</CardTitle>
@@ -393,7 +386,10 @@ const CourseManagement = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem className="flex items-center">
+                                  <DropdownMenuItem 
+                                    className="flex items-center"
+                                    onClick={() => navigate(`/admin/course/${course.id}/edit`)}
+                                  >
                                     <Edit className="mr-2 h-4 w-4" />
                                     <span>Edit</span>
                                   </DropdownMenuItem>
