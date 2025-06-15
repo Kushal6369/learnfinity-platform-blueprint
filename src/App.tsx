@@ -23,6 +23,12 @@ import NotFound from "./pages/NotFound";
 import Chatbot from "./pages/Chatbot";
 import ChatbotWidget from "./components/chat/ChatbotWidget";
 import Layout from "./components/layout/Layout";
+import Quiz from "./pages/Quiz";
+import CertificateGenerator from "./pages/CertificateGenerator";
+import AdminUploadMaterial from "./pages/admin/AdminUploadMaterial";
+import AdminGenerateQuiz from "./pages/admin/AdminGenerateQuiz";
+import AdminEditCertificateTemplate from "./pages/admin/AdminEditCertificateTemplate";
+import AdminStudentOverview from "./pages/admin/AdminStudentOverview";
 
 const queryClient = new QueryClient();
 
@@ -56,12 +62,18 @@ const App = () => (
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/my-courses" element={<MyCourses />} />
                 <Route path="/course/:id" element={<CourseDetail />} />
+                <Route path="/quiz" element={<Quiz />} />
+                <Route path="/certificate-generator" element={<CertificateGenerator />} />
                 <Route path="/chatbot" element={<Chatbot />} />
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
                 <Route path="/admin/course-management" element={<CourseManagement />} />
                 <Route path="/admin/course/:id/edit" element={<EditCourse />} />
                 <Route path="/admin/add-course" element={<AddCourse />} />
+                <Route path="/admin/upload-material" element={<AdminUploadMaterial />} />
+                <Route path="/admin/generate-quiz" element={<AdminGenerateQuiz />} />
+                <Route path="/admin/edit-certificate-template" element={<AdminEditCertificateTemplate />} />
+                <Route path="/admin/students" element={<AdminStudentOverview />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <ChatbotWrapper />
